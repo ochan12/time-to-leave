@@ -183,6 +183,19 @@ describe('Test Preferences Window', () =>
             changeItemValue('view', 'day');
             checkRenderedItem('view');
         });
+        test('Languages are alphabetically sorted', () =>
+        {
+            let lastValue = '';
+            $('#language option').map(function()
+            {
+                if (lastValue === '') lastValue = this.value;
+                else
+                {
+                    expect(lastValue.localeCompare(this.value)).toBeLessThan(0);
+                    lastValue = this.value;
+                }
+            });
+        });
     });
 });
 
