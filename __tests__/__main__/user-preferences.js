@@ -480,7 +480,6 @@ describe('Preferences Main', () =>
             expect(getLanguageName('bn')).toBe('বাংলা');
             expect(getLanguageName('ca-CA')).toBe('Catalàn');
             expect(getLanguageName('de-DE')).toBe('Deutsch');
-            expect(getLanguageName('dev' )).toBe('Português - Minerês');
             expect(getLanguageName('en')).toBe('English');
             expect(getLanguageName('es')).toBe('Español');
             expect(getLanguageName('fr-FR')).toBe('Français - France');
@@ -495,6 +494,7 @@ describe('Preferences Main', () =>
             expect(getLanguageName('nl')).toBe('Nederlands');
             expect(getLanguageName('pl')).toBe('Polski');
             expect(getLanguageName('pt-BR')).toBe('Português - Brasil');
+            expect(getLanguageName('pt-MI' )).toBe('Português - Minerês');
             expect(getLanguageName('ru-RU')).toBe('Русский');
             expect(getLanguageName('sv-SE')).toBe('Svenska');
             expect(getLanguageName('ta')).toBe('தமிழ்');
