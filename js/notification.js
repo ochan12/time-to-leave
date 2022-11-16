@@ -2,6 +2,7 @@
 
 const notifier = require('node-notifier');
 const path = require('path');
+const {Notification} = require('electron');
 
 const {
     subtractTime,
@@ -15,7 +16,6 @@ const {
 } = require('./user-preferences.js');
 const { getDateStr } = require('./date-aux.js');
 const { getCurrentTranslation } = require('../src/configs/i18next.config.js');
-
 const title = 'Time to Leave';
 let dismissToday = null;
 
@@ -27,19 +27,41 @@ function notify(msg, actions)
 
     return new Promise((resolve, reject) =>
     {
-        notifier.notify({
-            title: title,
-            message: msg,
-            icon: path.join(appPath, 'assets/ttl.png'), // Absolute path (doesn't work on balloons)
-            sound: true, // Only Notification Center or Windows Toasters
-            wait: true,
-            actions: actions,
-            appID: 'Time To Leave'
-        }, (error, action) =>
+        if (process.platform === 'win32')
         {
-            if (error) reject(error);
-            else resolve(action);
-        });
+            notifier.notify({
+                title: title,
+                message: msg,
+                icon: path.join(appPath, 'assets/ttl.png'), // Absolute path (doesn't work on balloons)
+                sound: true, // Only Notification Center or Windows Toasters
+                wait: true,
+                actions: actions,
+                appID: 'Time To Leave'
+            }, (error, action) =>
+            {
+                if (error) reject(error);
+                else resolve(action);
+            });
+        }
+        else
+        {
+            try
+            {
+                new Notification({
+                    title,
+                    body: msg,
+                    icon: path.join(appPath, 'assets/ttl.png'),
+                    timeoutType: 'default',
+                    sound: true,
+                    actions
+                }).show();
+                resolve();
+            }
+            catch (error)
+            {
+                reject(error);
+            }
+        }
     });
 
 }
@@ -49,6 +71,9 @@ function notify(msg, actions)
  */
 async function notifyTimeToLeave()
 {
+    const dismissBtn = {type: 'button', text: getCurrentTranslation('$Notification.dismiss-for-today')};
+    await notify(getCurrentTranslation('$Notification.time-to-leave'), [dismissBtn]);
+
     if (!notificationIsEnabled() || $('#leave-by').length === 0)
     {
         return;
@@ -80,7 +105,7 @@ async function notifyTimeToLeave()
         {
             try
             {
-                const dismissBtn = getCurrentTranslation('$Notification.dismiss-for-today');
+                const dismissBtn = {type: 'button', text: getCurrentTranslation('$Notification.dismiss-for-today')};
                 const actionBtn = await notify(getCurrentTranslation('$Notification.time-to-leave'), [dismissBtn]);
                 if (dismissBtn.toLowerCase() !== actionBtn.toLowerCase())
                 {

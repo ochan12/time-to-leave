@@ -109,12 +109,16 @@ app.on('ready', () =>
 {
     setupI18n(createMenu).then(() =>
     {
+        if (process.platform === 'win32')
+        {
+            app.setAppUserModelId(app.name);
+        }
         createWindow();
         createMenu();
         setLanguageChangedCallback(createMenu);
         triggerStartupDialogs();
         setInterval(refreshOnDayChange, 60 * 60 * 1000);
-        setInterval(notifyTimeToLeave, 60 * 1000);
+        setInterval(notifyTimeToLeave, 10 * 1000);
         const { powerMonitor } = require('electron');
         powerMonitor.on('unlock-screen', () => { checkIdleAndNotify(); });
         powerMonitor.on('resume', () => { checkIdleAndNotify(); });
