@@ -19,7 +19,7 @@ const { getCurrentTranslation } = require('../src/configs/i18next.config.js');
 const title = 'Time to Leave';
 let dismissToday = null;
 
-function notify(msg, actions)
+function notify(msg, actions = [])
 {
     const appPath = process.env.NODE_ENV === 'production'
         ? `${process.resourcesPath}/app`
@@ -35,7 +35,7 @@ function notify(msg, actions)
                 icon: path.join(appPath, 'assets/ttl.png'), // Absolute path (doesn't work on balloons)
                 sound: true, // Only Notification Center or Windows Toasters
                 wait: true,
-                actions: actions,
+                actions: actions.map(action => action.text),
                 appID: 'Time To Leave'
             }, (error, action) =>
             {
@@ -69,45 +69,37 @@ function notify(msg, actions)
 /*
  * Notify user if it's time to leave
  */
-async function notifyTimeToLeave()
+async function notifyTimeToLeave(leaveByElement)
 {
-    const dismissBtn = {type: 'button', text: getCurrentTranslation('$Notification.dismiss-for-today')};
-    await notify(getCurrentTranslation('$Notification.time-to-leave'), [dismissBtn]);
+    const now = new Date();
+    const dateToday = getDateStr(now);
+    const skipNotify = dismissToday === dateToday;
 
-    if (!notificationIsEnabled() || $('#leave-by').length === 0)
+    if (!notificationIsEnabled() || !leaveByElement || skipNotify)
     {
         return;
     }
 
-    const timeToLeave = $('#leave-by').val();
-    if (validateTime(timeToLeave))
+    if (validateTime(leaveByElement))
     {
         /**
          * How many minutes should pass before the Time-To-Leave notification should be presented again.
          * @type {number} Minutes post the clockout time
          */
         const notificationInterval = getNotificationsInterval();
-        const now = new Date();
         const curTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 
         // Let check if it's past the time to leave, and the minutes line up with the interval to check
-        const minutesDiff = hourToMinutes(subtractTime(timeToLeave, curTime));
-        const isRepeatingInterval = curTime > timeToLeave && (minutesDiff % notificationInterval === 0);
+        const minutesDiff = hourToMinutes(subtractTime(leaveByElement, curTime));
+        const isRepeatingInterval = curTime > leaveByElement && (minutesDiff % notificationInterval === 0);
 
-        const dateToday = getDateStr(now);
-        const skipNotify = dismissToday === dateToday;
-        if (skipNotify)
-        {
-            return;
-        }
-
-        if (curTime === timeToLeave || (isRepeatingInterval && repetitionIsEnabled()))
+        if (curTime === leaveByElement || (isRepeatingInterval && repetitionIsEnabled()))
         {
             try
             {
                 const dismissBtn = {type: 'button', text: getCurrentTranslation('$Notification.dismiss-for-today')};
                 const actionBtn = await notify(getCurrentTranslation('$Notification.time-to-leave'), [dismissBtn]);
-                if (dismissBtn.toLowerCase() !== actionBtn.toLowerCase())
+                if (actionBtn && dismissBtn.text.toLowerCase() !== actionBtn.toLowerCase())
                 {
                     return;
                 }
