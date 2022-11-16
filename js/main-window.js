@@ -19,6 +19,7 @@ let { contextMenu, tray } = require('./windows.js');
 
 import { getDefaultWidthHeight, getUserPreferences } from './user-preferences.js';
 import { appConfig, getDetails } from './app-config.js';
+import { notifyTimeToLeave } from './notification.js';
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -107,6 +108,16 @@ function createWindow()
     {
         mainWindow.webContents.send('PREFERENCE_SAVED', savedPreferences);
     });
+
+    ipcMain.on('RECEIVE_LEAVE_BY', (event, element) =>
+    {
+        notifyTimeToLeave(element);
+    });
+
+    setInterval(() =>
+    {
+        mainWindow.webContents.send('GET_LEAVE_BY');
+    }, 10 * 1000);
 
     tray = new Tray(appConfig.trayIcon);
     tray.on('click', () =>
