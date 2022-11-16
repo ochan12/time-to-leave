@@ -3,7 +3,7 @@
 
 const { app, ipcMain } = require('electron');
 const { createWindow, createMenu, getMainWindow, triggerStartupDialogs } = require('./js/main-window');
-const { notify, notifyTimeToLeave } = require('./js/notification');
+const { notify } = require('./js/notification');
 const { openWaiverManagerWindow } = require('./js/windows.js');
 const { setupI18n, getCurrentTranslation, setLanguageChangedCallback } = require('./src/configs/i18next.config.js');
 const { handleSquirrelEvent } = require('./js/squirrel.js');
@@ -118,7 +118,6 @@ app.on('ready', () =>
         setLanguageChangedCallback(createMenu);
         triggerStartupDialogs();
         setInterval(refreshOnDayChange, 60 * 60 * 1000);
-        setInterval(notifyTimeToLeave, 10 * 1000);
         const { powerMonitor } = require('electron');
         powerMonitor.on('unlock-screen', () => { checkIdleAndNotify(); });
         powerMonitor.on('resume', () => { checkIdleAndNotify(); });
