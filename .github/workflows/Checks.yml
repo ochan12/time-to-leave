@@ -22,8 +22,6 @@ jobs:
           wget --directory-prefix=/tmp https://chromedriver.storage.googleapis.com/87.0.4280.88/chromedriver_linux64.zip
           unzip -d /tmp/chromedriver /tmp/chromedriver_linux64.zip
           sudo chmod +x /tmp/chromedriver/chromedriver
-          sudo apt-get --reinstall install libnotify-bin notify-osd
-          /usr/lib/notify-osd/notify-osd
           /tmp/chromedriver/chromedriver &
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
       - name: '        Tests'
