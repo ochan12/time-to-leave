@@ -2,7 +2,7 @@
 
 const path = require('path');
 const {app} = require('electron');
-const {Notification} = require('electron');
+const ElectronNotification = require('electron').Notification;
 
 const {
     subtractTime,
@@ -33,7 +33,7 @@ function createNotification(msg, actions = [])
         // Actions are not supported on electron windows notifications in current version
         // XML specification: https://learn.microsoft.com/en-us/windows/apps/design/shell/tiles-and-notifications/adaptive-interactive-toasts?tabs=xml
         /*
-        notification = new Notification({ toastXml: `
+        notification = new ElectronNotification({ toastXml: `
             <toast  launch="time-to-leave" activationType="protocol">
             <visual>
             <binding template="ToastGeneric">
@@ -48,7 +48,7 @@ function createNotification(msg, actions = [])
                 </toast>`
         });
         */
-        notification = new Notification({
+        notification = new ElectronNotification({
             title: 'Time to Leave',
             body: msg,
             icon: path.join(appPath, 'assets/ttl.png'),
@@ -58,7 +58,7 @@ function createNotification(msg, actions = [])
     }
     else
     {
-        notification = new Notification({
+        notification = new ElectronNotification({
             title: 'Time to Leave',
             body: msg,
             icon: path.join(appPath, 'assets/ttl.png'),
@@ -82,7 +82,7 @@ function notifyTimeToLeave(leaveByElement)
 
     if (!notificationIsEnabled() || !leaveByElement || skipNotify)
     {
-        return;
+        return false;
     }
 
     if (validateTime(leaveByElement))
@@ -97,40 +97,46 @@ function notifyTimeToLeave(leaveByElement)
         // Let check if it's past the time to leave, and the minutes line up with the interval to check
         const minutesDiff = hourToMinutes(subtractTime(leaveByElement, curTime));
         const isRepeatingInterval = curTime > leaveByElement && (minutesDiff % notificationInterval === 0);
-
         if (curTime === leaveByElement || (isRepeatingInterval && repetitionIsEnabled()))
         {
-            try
-            {
-                const dismissBtn = {type: 'button', text: getCurrentTranslation('$Notification.dismiss-for-today'), action: 'dismiss', title: 'dismiss'};
-                createNotification(getCurrentTranslation('$Notification.time-to-leave'), [dismissBtn])
-                    .addListener('action', (response) =>
+
+            const dismissBtn = {type: 'button', text: getCurrentTranslation('$Notification.dismiss-for-today'), action: 'dismiss', title: 'dismiss'};
+            return createNotification(getCurrentTranslation('$Notification.time-to-leave'), [dismissBtn])
+                .addListener('action', (response) =>
+                {
+                    console.log('Pressed action');
+                    // Actions are only supported on macOS
+                    if ( response && dismissBtn.title.toLowerCase() === response.toLowerCase())
                     {
-                        console.log('Pressed action');
-                        // Actions are only supported on macOS
-                        if (dismissBtn.title.toLowerCase() === response.toLowerCase())
-                        {
-                            dismissToday = dateToday;
-                        }
-                    }).addListener('close', () =>
-                    {
-                        // We'll assume that if someone closes the notification they're
-                        // dismissing the notifications
                         dismissToday = dateToday;
-                    }).addListener('click', () =>
-                    {
-                        app.emit('activate');
-                    }).show();
-            }
-            catch (err)
-            {
-                console.error(err);
-            }
+                    }
+                }).addListener('close', () =>
+                {
+                    // We'll assume that if someone closes the notification they're
+                    // dismissing the notifications
+                    dismissToday = dateToday;
+                }).addListener('click', () =>
+                {
+                    app.emit('activate');
+                });
         }
     }
+    return false;
+}
+
+function updateDismiss(dismiss)
+{
+    dismissToday = dismiss;
+}
+
+function getDismiss()
+{
+    return dismissToday;
 }
 
 module.exports = {
     createNotification,
-    notifyTimeToLeave
+    getDismiss,
+    notifyTimeToLeave,
+    updateDismiss,
 };
