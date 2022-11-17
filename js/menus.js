@@ -7,7 +7,7 @@ const Store = require('electron-store');
 const { checkForUpdates } = require('./update-manager');
 const { getSavedPreferences } = require('./saved-preferences.js');
 const { importDatabaseFromFile, exportDatabaseToFile } = require('./import-export.js');
-const { notify } = require('./notification');
+const { createNotification } = require('./notification');
 const { getCurrentTranslation } = require('../src/configs/i18next.config');
 let { openWaiverManagerWindow, prefWindow } = require('./windows');
 
@@ -48,7 +48,7 @@ function getContextMenuTemplate(mainWindow)
 
                 mainWindow.webContents.executeJavaScript('calendar.punchDate()');
                 // Slice keeps "HH:MM" part of "HH:MM:SS GMT+HHMM (GMT+HH:MM)" time string
-                notify(`${getCurrentTranslation('$Menu.punched-time')} ${now.toTimeString().slice(0,5)}`);
+                createNotification(`${getCurrentTranslation('$Menu.punched-time')} ${now.toTimeString().slice(0,5)}`).show();
             }
         },
         {
@@ -76,7 +76,7 @@ function getDockMenuTemplate(mainWindow)
 
                 mainWindow.webContents.executeJavaScript('calendar.punchDate()');
                 // Slice keeps "HH:MM" part of "HH:MM:SS GMT+HHMM (GMT+HH:MM)" time string
-                notify(`${getCurrentTranslation('$Menu.punched-time')} ${now.toTimeString().slice(0,5)}`);
+                createNotification(`${getCurrentTranslation('$Menu.punched-time')} ${now.toTimeString().slice(0,5)}`).show();
             }
         }
     ];

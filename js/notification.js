@@ -1,7 +1,7 @@
 'use strict';
 
-const notifier = require('node-notifier');
 const path = require('path');
+const {app} = require('electron');
 const {Notification} = require('electron');
 
 const {
@@ -16,60 +16,65 @@ const {
 } = require('./user-preferences.js');
 const { getDateStr } = require('./date-aux.js');
 const { getCurrentTranslation } = require('../src/configs/i18next.config.js');
-const title = 'Time to Leave';
+
 let dismissToday = null;
 
-function notify(msg, actions = [])
+function createNotification(msg, actions = [])
 {
     const appPath = process.env.NODE_ENV === 'production'
         ? `${process.resourcesPath}/app`
         : path.join(__dirname, '..');
-
-    return new Promise((resolve, reject) =>
+    let notification;
+    if (process.platform === 'win332')
     {
-        if (process.platform === 'win32')
-        {
-            notifier.notify({
-                title: title,
-                message: msg,
-                icon: path.join(appPath, 'assets/ttl.png'), // Absolute path (doesn't work on balloons)
-                sound: true, // Only Notification Center or Windows Toasters
-                wait: true,
-                actions: actions.map(action => action.text),
-                appID: 'Time To Leave'
-            }, (error, action) =>
-            {
-                if (error) reject(error);
-                else resolve(action);
-            });
-        }
-        else
-        {
-            try
-            {
-                new Notification({
-                    title,
-                    body: msg,
-                    icon: path.join(appPath, 'assets/ttl.png'),
-                    timeoutType: 'default',
-                    sound: true,
-                    actions
-                }).show();
-                resolve();
-            }
-            catch (error)
-            {
-                reject(error);
-            }
-        }
-    });
+        // TODO Change to the toastXml to allow buttons when Electron version is at least 12.0.0
+        // https://github.com/electron/electron/pull/25401 was released on
+        // https://github.com/electron/electron/releases/tag/v12.0.0
+        // Actions are not supported on electron windows notifications in current version
+        // XML specification: https://learn.microsoft.com/en-us/windows/apps/design/shell/tiles-and-notifications/adaptive-interactive-toasts?tabs=xml
+        /*
+        notification = new Notification({ toastXml: `
+            <toast  launch="time-to-leave" activationType="protocol">
+            <visual>
+            <binding template="ToastGeneric">
+            <image placement="AppLogoOverride" hint-crop="circle"  src="http://timetoleave.app/ttl.36a76c7b.svg"/>
+            <text>This is the first text</text>
+            <text>this is the second text</text>
+            </binding>
+            </visual>
+            <actions>
+                ${actions.map(action => `<action content="${action.title}" arguments="${action.action}" activationType="background" />`)}
+             </actions>
+                </toast>`
+        });
+        */
+        notification = new Notification({
+            title: app.name,
+            body: msg,
+            icon: path.join(appPath, 'assets/ttl.png'),
+            timeoutType: 'default',
+            sound: true
+        });
+    }
+    else
+    {
+        notification = new Notification({
+            title: 'Time to Leave',
+            body: msg,
+            icon: path.join(appPath, 'assets/ttl.png'),
+            timeoutType: 'default',
+            sound: true,
+            actions
+        });
 
+    }
+    return notification;
 }
 
 /*
  * Notify user if it's time to leave
  */
-async function notifyTimeToLeave(leaveByElement)
+function notifyTimeToLeave(leaveByElement)
 {
     const now = new Date();
     const dateToday = getDateStr(now);
@@ -97,13 +102,25 @@ async function notifyTimeToLeave(leaveByElement)
         {
             try
             {
-                const dismissBtn = {type: 'button', text: getCurrentTranslation('$Notification.dismiss-for-today')};
-                const actionBtn = await notify(getCurrentTranslation('$Notification.time-to-leave'), [dismissBtn]);
-                if (actionBtn && dismissBtn.text.toLowerCase() !== actionBtn.toLowerCase())
-                {
-                    return;
-                }
-                dismissToday = dateToday;
+                const dismissBtn = {type: 'button', text: getCurrentTranslation('$Notification.dismiss-for-today'), action: 'dismiss', title: 'dismiss'};
+                createNotification(getCurrentTranslation('$Notification.time-to-leave'), [dismissBtn])
+                    .addListener('action', (response) =>
+                    {
+                        console.log('Pressed action');
+                        // Actions are only supported on macOS
+                        if (dismissBtn.title.toLowerCase() === response.toLowerCase())
+                        {
+                            dismissToday = dateToday;
+                        }
+                    }).addListener('close', () =>
+                    {
+                        // We'll assume that if someone closes the notification they're
+                        // dismissing the notifications
+                        dismissToday = dateToday;
+                    }).addListener('click', () =>
+                    {
+                        console.debug('Clicked on notification');
+                    }).show();
             }
             catch (err)
             {
@@ -114,6 +131,6 @@ async function notifyTimeToLeave(leaveByElement)
 }
 
 module.exports = {
-    notify,
+    createNotification,
     notifyTimeToLeave
 };
