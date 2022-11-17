@@ -17,7 +17,21 @@ describe('Notifications', function()
             notification.close();
             done();
         });
-        notification.show();
+        if (process.env.CI && process.platform === 'linux')
+        {
+            // Linux window notifications are not shown on CI
+            // so this is a way to emit the same event that actually happens.
+            // Timeout error is visible here https://github.com/thamara/time-to-leave/actions/runs/3488950409/jobs/5838419982
+            notification.emit('show', {
+                sender: {
+                    title: 'Time to Leave'
+                }
+            });
+        }
+        else
+        {
+            notification.show();
+        }
     });
 
     test('displays a notification in production', (done) =>
@@ -33,7 +47,18 @@ describe('Notifications', function()
             notification.close();
             done();
         });
-        notification.show();
+        if (process.env.CI && process.platform === 'linux')
+        {
+            notification.emit('show', {
+                sender: {
+                    title: 'Time to Leave'
+                }
+            });
+        }
+        else
+        {
+            notification.show();
+        }
     });
 
 });
