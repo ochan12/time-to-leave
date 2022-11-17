@@ -1,9 +1,7 @@
 /* eslint-disable no-undef */
 'use strict';
 
-const {
-    notify
-} = require('../../js/notification');
+const { createNotification } = require('../../js/notification');
 
 describe('Notifications', function()
 {
@@ -13,7 +11,7 @@ describe('Notifications', function()
         try
         {
             process.env.NODE_ENV = 'test';
-            await expect(notify('test')).toBeTruthy();
+            await expect(createNotification('test').show()).toBeTruthy();
         }
         catch (error)
         {
@@ -27,7 +25,7 @@ describe('Notifications', function()
         try
         {
             process.env.NODE_ENV = 'production';
-            await expect(notify('production')).toBeTruthy();
+            await expect(createNotification('production').show()).toBeTruthy();
         }
         catch (error)
         {
