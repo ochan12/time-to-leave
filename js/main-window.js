@@ -111,7 +111,7 @@ function createWindow()
 
     ipcMain.on('RECEIVE_LEAVE_BY', (event, element) =>
     {
-        notifyTimeToLeave(element).emi.show();
+        notifyTimeToLeave(element).show();
     });
 
     setInterval(() =>
