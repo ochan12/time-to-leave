@@ -25,7 +25,7 @@ function createNotification(msg, actions = [])
         ? `${process.resourcesPath}/app`
         : path.join(__dirname, '..');
     let notification;
-    if (process.platform === 'win332')
+    if (process.platform === 'win32')
     {
         // TODO Change to the toastXml to allow buttons when Electron version is at least 12.0.0
         // https://github.com/electron/electron/pull/25401 was released on
