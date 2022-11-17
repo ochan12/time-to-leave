@@ -119,7 +119,7 @@ function notifyTimeToLeave(leaveByElement)
                         dismissToday = dateToday;
                     }).addListener('click', () =>
                     {
-                        console.debug('Clicked on notification');
+                        app.emit('activate');
                     }).show();
             }
             catch (err)
