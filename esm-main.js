@@ -3,7 +3,7 @@
 
 const { app, ipcMain } = require('electron');
 const { createWindow, createMenu, getMainWindow, triggerStartupDialogs } = require('./js/main-window');
-const { notify } = require('./js/notification');
+const { createNotification } = require('./js/notification');
 const { openWaiverManagerWindow } = require('./js/windows.js');
 const { setupI18n, getCurrentTranslation, setLanguageChangedCallback } = require('./src/configs/i18next.config.js');
 const { handleSquirrelEvent } = require('./js/squirrel.js');
@@ -54,7 +54,7 @@ function checkIdleAndNotify()
     if (recommendPunchIn)
     {
         recommendPunchIn = false;
-        notify(getCurrentTranslation('$Notification.punch-reminder'));
+        createNotification(getCurrentTranslation('$Notification.punch-reminder')).show();
     }
 }
 
@@ -109,9 +109,10 @@ app.on('ready', () =>
 {
     setupI18n(createMenu).then(() =>
     {
-        if (process.platform === 'win32')
+        if (process.platform === 'win32' && process.env !== 'production')
         {
-            app.setAppUserModelId(app.name);
+            // This is used to change the header on windows toasts
+            app.setAppUserModelId('Time to Leave');
         }
         createWindow();
         createMenu();
