@@ -5,32 +5,35 @@ const { createNotification } = require('../../js/notification');
 
 describe('Notifications', function()
 {
-    test('displays a notification in test', async() =>
+    test('displays a notification in test', (done) =>
     {
-        expect.assertions(1);
-        try
+        process.env.NODE_ENV = 'test';
+        const notification = createNotification('test');
+        expect(notification.body).toBe('test');
+        expect(notification.title).toBe('Time to Leave');
+        notification.on('show', (event) =>
         {
-            process.env.NODE_ENV = 'test';
-            await expect(createNotification('test').show()).toBeTruthy();
-        }
-        catch (error)
-        {
-            expect(error).toMatch('error');
-        }
+            expect(event).toBeTruthy();
+            notification.close();
+            done();
+        });
+        notification.show();
     });
 
-    test('displays a notification in production', async() =>
+    test('displays a notification in production', (done) =>
     {
-        expect.assertions(1);
-        try
+        process.env.NODE_ENV = 'production';
+        const notification = createNotification('production');
+        expect(notification.body).toBe('production');
+        expect(notification.title).toBe('Time to Leave');
+        notification.on('show', (event) =>
         {
-            process.env.NODE_ENV = 'production';
-            await expect(createNotification('production').show()).toBeTruthy();
-        }
-        catch (error)
-        {
-            expect(error).toMatch('error');
-        }
+            expect(event).toBeTruthy();
+            expect(event.sender.title).toBe('Time to Leave');
+            notification.close();
+            done();
+        });
+        notification.show();
     });
 
 });

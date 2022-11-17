@@ -49,7 +49,7 @@ function createNotification(msg, actions = [])
         });
         */
         notification = new Notification({
-            title: app.name,
+            title: 'Time to Leave',
             body: msg,
             icon: path.join(appPath, 'assets/ttl.png'),
             timeoutType: 'default',
