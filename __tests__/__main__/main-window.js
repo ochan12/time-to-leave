@@ -1,9 +1,16 @@
-const { BrowserWindow, ipcMain } = require('electron');
 const {getMainWindow, createWindow, resetMainWindow, getLeaveByInterval, getWindowTray} = require('../../js/main-window.js');
 const notification = require('../../js/notification.js');
 const { savePreferences, defaultPreferences, resetPreferences } = require('../../js/user-preferences.js');
+
+const { BrowserWindow, ipcMain } = require('electron');
+
 describe('main-window.js', () =>
 {
+    beforeEach(() =>
+    {
+        // Avoid showing the window
+        jest.spyOn(BrowserWindow.prototype, 'show').mockImplementation(() => {});
+    });
 
     describe('getMainWindow', () =>
     {
@@ -38,7 +45,6 @@ describe('main-window.js', () =>
             expect(ipcMain.listenerCount('RECEIVE_LEAVE_BY')).toBe(1);
             expect(mainWindow.listenerCount('minimize')).toBe(2);
             expect(mainWindow.listenerCount('close')).toBe(1);
-            expect(mainWindow.getSize()).toEqual([1010, 912]);
             expect(loadFileSpy).toHaveBeenCalledTimes(1);
             expect(getLeaveByInterval()).not.toBe(null);
             expect(getLeaveByInterval()._idleNext.expiry).toBeGreaterThan(0);
@@ -54,7 +60,7 @@ describe('main-window.js', () =>
              * @type {BrowserWindow}
              */
             const mainWindow = getMainWindow();
-            mainWindow.on('show', () =>
+            mainWindow.on('ready-to-show', () =>
             {
                 ipcMain.emit('RESIZE_MAIN_WINDOW', {}, 500, 600);
                 expect(mainWindow.getSize()).toEqual([500, 600]);
@@ -68,7 +74,7 @@ describe('main-window.js', () =>
              * @type {BrowserWindow}
              */
             const mainWindow = getMainWindow();
-            mainWindow.on('show', () =>
+            mainWindow.on('ready-to-show', () =>
             {
                 ipcMain.emit('RESIZE_MAIN_WINDOW', {}, 100, 100);
                 expect(mainWindow.getSize()).toEqual([450, 450]);
@@ -86,7 +92,7 @@ describe('main-window.js', () =>
              * @type {BrowserWindow}
              */
             const mainWindow = getMainWindow();
-            mainWindow.on('show', () =>
+            mainWindow.on('ready-to-show', () =>
             {
                 const windowSpy = jest.spyOn(mainWindow.webContents, 'send').mockImplementation((event, savedPreferences) =>
                 {
@@ -118,7 +124,7 @@ describe('main-window.js', () =>
              * @type {BrowserWindow}
              */
             const mainWindow = getMainWindow();
-            mainWindow.on('show', () =>
+            mainWindow.on('ready-to-show', () =>
             {
                 const windowSpy = jest.spyOn(notification, 'notifyTimeToLeave').mockImplementation(() =>
                 {
@@ -137,7 +143,7 @@ describe('main-window.js', () =>
              * @type {BrowserWindow}
              */
             const mainWindow = getMainWindow();
-            mainWindow.on('show', () =>
+            mainWindow.on('ready-to-show', () =>
             {
                 const windowSpy = jest.spyOn(notification, 'notifyTimeToLeave').mockImplementation(() =>
                 {
@@ -170,7 +176,7 @@ describe('main-window.js', () =>
                  * @type {BrowserWindow}
                  */
                 const mainWindow = getMainWindow();
-                mainWindow.on('show', () =>
+                mainWindow.on('ready-to-show', () =>
                 {
                     const showSpy = jest.spyOn(mainWindow, 'show').mockImplementation(() =>
                     {
@@ -178,7 +184,7 @@ describe('main-window.js', () =>
                     });
                     ipcMain.on('FINISH_TEST', () =>
                     {
-                        expect(showSpy).toHaveBeenCalledTimes(1);
+                        expect(showSpy).toHaveBeenCalledTimes(2);
                         done();
                     });
                     getWindowTray().emit('click');
@@ -194,7 +200,7 @@ describe('main-window.js', () =>
                  * @type {BrowserWindow}
                  */
                 const mainWindow = getMainWindow();
-                mainWindow.on('show', () =>
+                mainWindow.on('ready-to-show', () =>
                 {
                     const showSpy = jest.spyOn(getWindowTray(), 'popUpContextMenu').mockImplementation(() =>
                     {
@@ -224,7 +230,7 @@ describe('main-window.js', () =>
              * @type {BrowserWindow}
              */
             const mainWindow = getMainWindow();
-            mainWindow.on('show', () =>
+            mainWindow.on('ready-to-show', () =>
             {
                 mainWindow.emit('minimize', {
                     preventDefault: () => {}
@@ -244,7 +250,7 @@ describe('main-window.js', () =>
              * @type {BrowserWindow}
              */
             const mainWindow = getMainWindow();
-            mainWindow.on('show', () =>
+            mainWindow.on('ready-to-show', () =>
             {
                 mainWindow.emit('minimize', {
                     preventDefault: () => {}
@@ -271,7 +277,7 @@ describe('main-window.js', () =>
              * @type {BrowserWindow}
              */
             const mainWindow = getMainWindow();
-            mainWindow.on('show', () =>
+            mainWindow.on('ready-to-show', () =>
             {
                 mainWindow.emit('close', {
                     preventDefault: () => {}
@@ -293,7 +299,7 @@ describe('main-window.js', () =>
              * @type {BrowserWindow}
              */
             const mainWindow = getMainWindow();
-            mainWindow.on('show', () =>
+            mainWindow.on('ready-to-show', () =>
             {
                 // Force the exit
                 mainWindow.on('close', () =>
