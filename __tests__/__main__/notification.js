@@ -4,6 +4,7 @@
 const { createNotification, notifyTimeToLeave, updateDismiss, getDismiss } = require('../../js/notification');
 const { getUserPreferences, savePreferences, resetPreferences } = require('../../js/user-preferences');
 const { getDateStr } = require('../../js/date-aux.js');
+const { app } = require('electron');
 
 function buildTimeString(now)
 {
@@ -178,6 +179,11 @@ describe('Notifications', function()
 
         test('Should pass when time is correct and close is pressed', (done) =>
         {
+            jest.spyOn(app, 'emit').mockImplementation((key) =>
+            {
+                expect(key).toBe('activate');
+                done();
+            });
             const now = new Date();
             now.setHours(now.getHours());
             const notify = notifyTimeToLeave(buildTimeString(now));
@@ -185,12 +191,6 @@ describe('Notifications', function()
             expect(notify.listenerCount('action')).toBe(1);
             expect(notify.listenerCount('close')).toBe(1);
             expect(notify.listenerCount('click')).toBe(1);
-            notify.removeAllListeners('click');
-            notify.addListener('click', (event) =>
-            {
-                expect(event).toBe('Clicked on notification');
-                done();
-            });
             notify.emit('click', 'Clicked on notification');
         });
     });
