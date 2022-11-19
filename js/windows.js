@@ -72,12 +72,17 @@ function resetWindowsElements()
     contextMenu = null;
 }
 
+function getWaiverWindow()
+{
+    return waiverWindow;
+}
+
 module.exports = {
-    waiverWindow,
     prefWindow,
     tray,
     contextMenu,
     openWaiverManagerWindow,
     getDialogCoordinates,
-    resetWindowsElements
+    resetWindowsElements,
+    getWaiverWindow
 };
