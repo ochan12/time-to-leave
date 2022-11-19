@@ -354,6 +354,55 @@ describe('main-window.js', () =>
         });
     });
 
+    describe('GET_LEAVE_BY interval', () =>
+    {
+        test('Should create interval', (done) =>
+        {
+            jest.useFakeTimers();
+            jest.spyOn(global, 'setInterval');
+
+            createWindow();
+            /**
+             * @type {BrowserWindow}
+             */
+            const mainWindow = getMainWindow();
+            mainWindow.on('ready-to-show', () =>
+            {
+                mainWindow.emit('close', {
+                    preventDefault: () => {}
+                });
+                expect(setInterval).toHaveBeenCalledTimes(1);
+                expect(setInterval).toHaveBeenLastCalledWith(expect.any(Function), 60 * 1000);
+                done();
+            });
+        });
+
+        test('Should run interval', (done) =>
+        {
+            jest.useFakeTimers();
+            jest.spyOn(global, 'setInterval');
+            jest.clearAllTimers();
+            createWindow();
+            /**
+             * @type {BrowserWindow}
+             */
+            const mainWindow = getMainWindow();
+            jest.spyOn(mainWindow.webContents, 'send').mockImplementationOnce(() =>
+            {
+                done();
+            });
+            mainWindow.on('ready-to-show', () =>
+            {
+                mainWindow.emit('close', {
+                    preventDefault: () => {}
+                });
+                expect(setInterval).toHaveBeenCalledTimes(1);
+                expect(setInterval).toHaveBeenLastCalledWith(expect.any(Function), 60 * 1000);
+                jest.runOnlyPendingTimers();
+            });
+        });
+    });
+
     afterEach(() =>
     {
         jest.restoreAllMocks();
