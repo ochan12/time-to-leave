@@ -73,6 +73,7 @@ function createWindow()
         width: widthHeight.width,
         height: widthHeight.height,
         minWidth: 450,
+        minHeight: 450,
         useContentSize: false,
         zoomToPageWidth: true, //MacOS only
         icon: appConfig.iconpath,
@@ -111,7 +112,8 @@ function createWindow()
 
     ipcMain.on('RECEIVE_LEAVE_BY', (event, element) =>
     {
-        notifyTimeToLeave(element).show();
+        const notification = notifyTimeToLeave(element);
+        if (notification) notification.show();
     });
 
     setInterval(() =>
@@ -259,9 +261,24 @@ function shouldProposeFlexibleDbMigration()
     return store.size !== 0 && flexibleStore.size === 0;
 }
 
+function resetMainWindow()
+{
+    ipcMain.removeAllListeners();
+    if (mainWindow)
+    {
+        mainWindow.close();
+        mainWindow.removeAllListeners();
+        mainWindow = null;
+    }
+    if (tray) tray.removeAllListeners();
+    clearInterval();
+    tray = null;
+}
+
 module.exports = {
     createWindow,
     createMenu,
     getMainWindow,
-    triggerStartupDialogs
+    triggerStartupDialogs,
+    resetMainWindow
 };
