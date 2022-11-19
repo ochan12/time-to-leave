@@ -16,6 +16,7 @@ describe('Notifications', function()
     {
         test('displays a notification in test', (done) =>
         {
+            jest.restoreAllMocks();
             process.env.NODE_ENV = 'test';
             const notification = createNotification('test');
             expect(notification.body).toBe('test');
@@ -103,13 +104,16 @@ describe('Notifications', function()
             const notify = notifyTimeToLeave('33:90');
             expect(notify).toBe(false);
         });
+
         test('Should fail when time is later', () =>
         {
+            jest.restoreAllMocks();
             const now = new Date();
-            now.setHours(now.getHours() + 1, now.getMinutes() + 5);
+            now.setMinutes( now.getMinutes() + 1);
             const notify = notifyTimeToLeave(buildTimeString(now));
             expect(notify).toBe(false);
         });
+
         test('Should fail when time is before', () =>
         {
             const preferences = getUserPreferences();
@@ -120,6 +124,7 @@ describe('Notifications', function()
             const notify = notifyTimeToLeave(buildTimeString(now));
             expect(notify).toBe(false);
         });
+
         test('Should fail when repetition is disabled', () =>
         {
             const preferences = getUserPreferences();
@@ -131,6 +136,7 @@ describe('Notifications', function()
             const notify = notifyTimeToLeave(buildTimeString(now));
             expect(notify).toBe(false);
         });
+
         test('Should pass when time is correct and dismiss action is pressed', () =>
         {
             const now = new Date();
@@ -143,6 +149,7 @@ describe('Notifications', function()
             notify.emit('action', 'dismiss');
             expect(getDismiss()).toBe(getDateStr(now));
         });
+
         test('Should pass when time is correct and other action is pressed', () =>
         {
             const now = new Date();
@@ -155,6 +162,7 @@ describe('Notifications', function()
             notify.emit('action', '');
             expect(getDismiss()).toBe(null);
         });
+
         test('Should pass when time is correct and close is pressed', () =>
         {
             const now = new Date();
@@ -167,6 +175,7 @@ describe('Notifications', function()
             notify.emit('close');
             expect(getDismiss()).toBe(getDateStr(now));
         });
+
         test('Should pass when time is correct and close is pressed', (done) =>
         {
             const now = new Date();
