@@ -2,7 +2,6 @@ const {getMainWindow, createWindow, resetMainWindow, getLeaveByInterval, getWind
 const notification = require('../../js/notification.js');
 const userPreferences = require('../../js/user-preferences.js');
 const { savePreferences, defaultPreferences, resetPreferences } = userPreferences;
-
 const { BrowserWindow, ipcMain } = require('electron');
 
 describe('main-window.js', () =>
@@ -11,7 +10,7 @@ describe('main-window.js', () =>
     beforeEach(() =>
     {
         // Avoid showing the window
-        showSpy = jest.spyOn(BrowserWindow.prototype, 'show').mockImplementation(() => {});
+        showSpy = jest.spyOn(BrowserWindow.prototype, 'show').mockImplementationOnce(() => {});
     });
 
     describe('getMainWindow', () =>
@@ -140,6 +139,7 @@ describe('main-window.js', () =>
                 done();
             });
         });
+
         test('Should show notification', (done) =>
         {
             createWindow();
@@ -195,6 +195,7 @@ describe('main-window.js', () =>
                 });
             });
         });
+
         describe('emit right-click', () =>
         {
             test('It should show menu on right-click', (done) =>
@@ -243,6 +244,7 @@ describe('main-window.js', () =>
                 done();
             });
         });
+
         test('Should minimize if minimize-to-tray is false', (done) =>
         {
             const userPreferencesSpy = jest.spyOn(userPreferences, 'getUserPreferences');
@@ -267,6 +269,7 @@ describe('main-window.js', () =>
             });
         });
     });
+
     describe('emit close', () =>
     {
         test('Should get hidden if close-to-tray is true', (done) =>
@@ -290,6 +293,7 @@ describe('main-window.js', () =>
                 done();
             });
         });
+
         test('Should close if close-to-tray is false', (done) =>
         {
             savePreferences({
