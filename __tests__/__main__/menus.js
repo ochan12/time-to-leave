@@ -21,6 +21,7 @@ jest.mock('electron', () =>
             invoke: jest.fn().mockResolvedValueOnce('./').mockResolvedValue('./dummy_file.txt'),
         },
         app: {
+            ...originalModule.app,
             quit: jest.fn()
         },
         BrowserWindow: {
@@ -35,6 +36,17 @@ jest.mock('electron', () =>
         shell: {
             ...originalModule.shell,
             openExternal: jest.fn()
+        },
+        dialog: {
+            ...originalModule.dialog,
+            showSaveDialogSync: jest.fn(),
+            showMessageBox: jest.fn(),
+            showMessageBoxSync: jest.fn(),
+            showOpenDialogSync: jest.fn()
+        },
+        clipboard: {
+            ...originalModule.clipboard,
+            writeText: jest.fn()
         }
     };
 });
@@ -49,10 +61,27 @@ jest.mock('../../js/update-manager', () => ({
     checkForUpdates: jest.fn()
 }));
 
+jest.mock('../../js/import-export', () => ({
+    exportDatabaseToFile: jest.fn(),
+    importDatabaseFromFile: jest.fn()
+}));
+
+jest.mock('electron-store', () =>
+{
+    class Store
+    {
+        constructor() { }
+        clear() { }
+    }
+    return Store;
+});
+
 const updateManager = require('../../js/update-manager');
 const notification = require('../../js/notification');
 const windows = require('../../js/windows');
-const {app, BrowserWindow, shell} = require('electron');
+const importExport = require('../../js/import-export.js');
+const {app, BrowserWindow, shell, dialog, clipboard} = require('electron');
+const ElectronStore = require('electron-store');
 describe('menus.js', () =>
 {
     const mocks = {};
@@ -195,7 +224,7 @@ describe('menus.js', () =>
             });
         });
 
-        test('Should create notification on click', () =>
+        test('Should create notification on click', (done) =>
         {
             const mainWindow = {
                 webContents: {
@@ -205,8 +234,10 @@ describe('menus.js', () =>
                     }
                 }
             };
-            mocks.createNotificationSpy = jest.spyOn(notification, 'createNotification');
-            getContextMenuTemplate(mainWindow)[0].click();
+            mocks.createNotificationSpy = jest.spyOn(notification, 'createNotification').mockImplementation(() => ({
+                show: done
+            }));
+            getDockMenuTemplate(mainWindow)[0].click();
             expect(mocks.createNotificationSpy).toBeCalledTimes(1);
         });
     });
@@ -320,6 +351,34 @@ describe('menus.js', () =>
             });
             getHelpMenuTemplate()[2].click();
         });
+
+        test('Should show about message box and writ to clipboard', () =>
+        {
+            mocks.writeText = jest.spyOn(clipboard, 'writeText').mockImplementation(() => {});
+            mocks.showMessageBox = jest.spyOn(dialog, 'showMessageBox').mockResolvedValue({response: 0});
+            getHelpMenuTemplate({})[4].click();
+            setTimeout(() =>
+            {
+                expect(mocks.showMessageBox).toHaveBeenCalledTimes(1);
+                expect(mocks.writeText).toHaveBeenCalledTimes(1);
+            }, 1000);
+        });
+        test('Should show about message box', () =>
+        {
+            mocks.writeText = jest.spyOn(clipboard, 'writeText').mockImplementation(() => {});
+            mocks.showMessageBox = jest.spyOn(dialog, 'showMessageBox').mockResolvedValue({response: 1});
+            getHelpMenuTemplate({})[4].click();
+            expect(mocks.showMessageBox).toHaveBeenCalledTimes(1);
+            expect(mocks.writeText).toHaveBeenCalledTimes(0);
+        });
+        test('Should show about message box', () =>
+        {
+            mocks.writeText = jest.spyOn(clipboard, 'writeText').mockImplementation(() => {});
+            mocks.showMessageBox = jest.spyOn(dialog, 'showMessageBox').mockRejectedValue({response: 1});
+            getHelpMenuTemplate({})[4].click();
+            expect(mocks.showMessageBox).toHaveBeenCalledTimes(1);
+            expect(mocks.writeText).toHaveBeenCalledTimes(0);
+        });
     });
 
     describe('getEditMenuTemplate', () =>
@@ -328,6 +387,7 @@ describe('menus.js', () =>
         {
             expect(getEditMenuTemplate().length).toBe(10);
         });
+
         getEditMenuTemplate().forEach((menu) =>
         {
             test('Should be a separator or valid field', () =>
@@ -364,6 +424,157 @@ describe('menus.js', () =>
                     }
                 }
             });
+        });
+
+        test('Should show dialog for exporting db', () =>
+        {
+            mocks.showSaveDialogSync = jest.spyOn(dialog, 'showSaveDialogSync').mockImplementation(() => true);
+            mocks.showMessageBox = jest.spyOn(dialog, 'showMessageBox').mockImplementation(() =>{ });
+            mocks.export = jest.spyOn(importExport, 'exportDatabaseToFile').mockImplementation(() =>{ });
+            getEditMenuTemplate()[7].click();
+            expect(mocks.showSaveDialogSync).toHaveBeenCalledTimes(1);
+            expect(mocks.showMessageBox).toHaveBeenCalledTimes(1);
+            expect(mocks.export).toHaveBeenCalledTimes(1);
+        });
+
+        test('Should not show dialog for exporting db', () =>
+        {
+            mocks.showSaveDialogSync = jest.spyOn(dialog, 'showSaveDialogSync').mockImplementation(() => false);
+            mocks.showMessageBox = jest.spyOn(dialog, 'showMessageBox').mockImplementation(() =>{ });
+            mocks.export = jest.spyOn(importExport, 'exportDatabaseToFile').mockImplementation(() =>{ });
+            getEditMenuTemplate()[7].click();
+            expect(mocks.showSaveDialogSync).toHaveBeenCalledTimes(1);
+            expect(mocks.showMessageBox).toHaveBeenCalledTimes(0);
+            expect(mocks.export).toHaveBeenCalledTimes(0);
+        });
+
+        test('Should show dialog for importing db', () =>
+        {
+            expect.assertions(5);
+            const mainWindow = {
+                webContents: {
+                    executeJavaScript: (key) =>
+                    {
+                        expect(key).toBe('calendar.reload()');
+                    }
+                }
+            };
+            mocks.showOpenDialogSync = jest.spyOn(dialog, 'showOpenDialogSync').mockImplementation(() => true);
+            mocks.showMessageBox = jest.spyOn(dialog, 'showMessageBox').mockImplementation(() =>{ });
+            mocks.showMessageBoxSync = jest.spyOn(dialog, 'showMessageBoxSync').mockImplementation(() => 0);
+            mocks.export = jest.spyOn(importExport, 'importDatabaseFromFile').mockImplementation(() => ({
+                result: true,
+                failed: 0
+            }));
+            getEditMenuTemplate(mainWindow)[8].click();
+            expect(mocks.showOpenDialogSync).toHaveBeenCalledTimes(1);
+            expect(mocks.showMessageBoxSync).toHaveBeenCalledTimes(1);
+            expect(mocks.showMessageBox).toHaveBeenCalledTimes(1);
+            expect(mocks.export).toHaveBeenCalledTimes(1);
+        });
+
+        test('Should show fail dialog for importing db', () =>
+        {
+            expect.assertions(5);
+            const mainWindow = {
+                webContents: {
+                    executeJavaScript: (key) =>
+                    {
+                        expect(key).toBe('calendar.reload()');
+                    }
+                }
+            };
+            mocks.showOpenDialogSync = jest.spyOn(dialog, 'showOpenDialogSync').mockImplementation(() => true);
+            mocks.showMessageBox = jest.spyOn(dialog, 'showMessageBox').mockImplementation(() =>{ });
+            mocks.showMessageBoxSync = jest.spyOn(dialog, 'showMessageBoxSync').mockImplementation(() => 0);
+            mocks.export = jest.spyOn(importExport, 'importDatabaseFromFile').mockImplementation(() => ({
+                result: false,
+                failed: 1
+            }));
+            getEditMenuTemplate(mainWindow)[8].click();
+            expect(mocks.showOpenDialogSync).toHaveBeenCalledTimes(1);
+            expect(mocks.showMessageBoxSync).toHaveBeenCalledTimes(2);
+            expect(mocks.showMessageBox).toHaveBeenCalledTimes(0);
+            expect(mocks.export).toHaveBeenCalledTimes(1);
+        });
+
+        test('Should show fail dialog for importing db', () =>
+        {
+            expect.assertions(5);
+            const mainWindow = {
+                webContents: {
+                    executeJavaScript: (key) =>
+                    {
+                        expect(key).toBe('calendar.reload()');
+                    }
+                }
+            };
+            mocks.showOpenDialogSync = jest.spyOn(dialog, 'showOpenDialogSync').mockImplementation(() => true);
+            mocks.showMessageBox = jest.spyOn(dialog, 'showMessageBox').mockImplementation(() =>{ });
+            mocks.showMessageBoxSync = jest.spyOn(dialog, 'showMessageBoxSync').mockImplementation(() => 0);
+            mocks.export = jest.spyOn(importExport, 'importDatabaseFromFile').mockImplementation(() => ({
+                result: false,
+                failed: 0
+            }));
+            getEditMenuTemplate(mainWindow)[8].click();
+            expect(mocks.showOpenDialogSync).toHaveBeenCalledTimes(1);
+            expect(mocks.showMessageBoxSync).toHaveBeenCalledTimes(2);
+            expect(mocks.showMessageBox).toHaveBeenCalledTimes(0);
+            expect(mocks.export).toHaveBeenCalledTimes(1);
+        });
+
+        test('Should not show dialog for importing db', () =>
+        {
+            mocks.showOpenDialogSync = jest.spyOn(dialog, 'showOpenDialogSync').mockImplementation(() => false);
+            mocks.showMessageBox = jest.spyOn(dialog, 'showMessageBox').mockImplementation(() =>{ });
+            mocks.showMessageBoxSync = jest.spyOn(dialog, 'showMessageBoxSync').mockImplementation(() => 1);
+            mocks.export = jest.spyOn(importExport, 'importDatabaseFromFile').mockImplementation(() =>{ });
+            getEditMenuTemplate()[8].click();
+            expect(mocks.showOpenDialogSync).toHaveBeenCalledTimes(1);
+            expect(mocks.showMessageBoxSync).toHaveBeenCalledTimes(0);
+            expect(mocks.showMessageBox).toHaveBeenCalledTimes(0);
+            expect(mocks.export).toHaveBeenCalledTimes(0);
+        });
+
+        test('Should not show dialog for importing db', () =>
+        {
+            mocks.showOpenDialogSync = jest.spyOn(dialog, 'showOpenDialogSync').mockImplementation(() => true);
+            mocks.showMessageBox = jest.spyOn(dialog, 'showMessageBox').mockImplementation(() =>{ });
+            mocks.showMessageBoxSync = jest.spyOn(dialog, 'showMessageBoxSync').mockImplementation(() => 1);
+            mocks.export = jest.spyOn(importExport, 'importDatabaseFromFile').mockImplementation(() =>{ });
+            getEditMenuTemplate()[8].click();
+            expect(mocks.showOpenDialogSync).toHaveBeenCalledTimes(1);
+            expect(mocks.showMessageBoxSync).toHaveBeenCalledTimes(1);
+            expect(mocks.showMessageBox).toHaveBeenCalledTimes(0);
+            expect(mocks.export).toHaveBeenCalledTimes(0);
+        });
+
+        test('Should not show dialog for clearing db', () =>
+        {
+            mocks.showMessageBox = jest.spyOn(dialog, 'showMessageBox').mockImplementation(() =>{ });
+            mocks.showMessageBoxSync = jest.spyOn(dialog, 'showMessageBoxSync').mockImplementation(() => 0);
+            getEditMenuTemplate()[9].click();
+            expect(mocks.showMessageBoxSync).toHaveBeenCalledTimes(1);
+            expect(mocks.showMessageBox).toHaveBeenCalledTimes(0);
+        });
+
+        test('Should not show dialog for clearing db', () =>
+        {
+            const mainWindow = {
+                webContents: {
+                    executeJavaScript: (key) =>
+                    {
+                        expect(key).toBe('calendar.reload()');
+                    }
+                }
+            };
+            mocks.store = jest.spyOn(ElectronStore.prototype, 'clear').mockImplementation(() => {});
+            mocks.showMessageBox = jest.spyOn(dialog, 'showMessageBox').mockImplementation(() =>{ });
+            mocks.showMessageBoxSync = jest.spyOn(dialog, 'showMessageBoxSync').mockImplementation(() => 1);
+            getEditMenuTemplate(mainWindow)[9].click();
+            expect(mocks.showMessageBoxSync).toHaveBeenCalledTimes(1);
+            expect(mocks.showMessageBox).toHaveBeenCalledTimes(1);
+            expect(mocks.store).toHaveBeenCalledTimes(3);
         });
     });
 
