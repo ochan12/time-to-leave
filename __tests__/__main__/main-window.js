@@ -1,6 +1,7 @@
 const { BrowserWindow, ipcMain } = require('electron');
-const {getMainWindow, createWindow, resetMainWindow} = require('../../js/main-window.js');
+const {getMainWindow, createWindow, resetMainWindow, getLeaveByInterval, getWindowTray} = require('../../js/main-window.js');
 const notification = require('../../js/notification.js');
+const { savePreferences, defaultPreferences, resetPreferences } = require('../../js/user-preferences.js');
 describe('main-window.js', () =>
 {
 
@@ -8,7 +9,9 @@ describe('main-window.js', () =>
     {
         test('Should be null  if it has not been started', () =>
         {
+            expect(getWindowTray()).toBe(null);
             expect(getMainWindow()).toBe(null);
+            expect(getLeaveByInterval()).toBe(null);
         });
 
         test('Should get window', () =>
@@ -37,6 +40,8 @@ describe('main-window.js', () =>
             expect(mainWindow.listenerCount('close')).toBe(1);
             expect(mainWindow.getSize()).toEqual([1010, 912]);
             expect(loadFileSpy).toHaveBeenCalledTimes(1);
+            expect(getLeaveByInterval()).not.toBe(null);
+            expect(getLeaveByInterval()._idleNext.expiry).toBeGreaterThan(0);
         });
     });
 
@@ -154,10 +159,161 @@ describe('main-window.js', () =>
         });
     });
 
+    describe('tray', () =>
+    {
+        describe('emit click', () =>
+        {
+            test('It should show window on click', (done) =>
+            {
+                createWindow();
+                /**
+                 * @type {BrowserWindow}
+                 */
+                const mainWindow = getMainWindow();
+                mainWindow.on('show', () =>
+                {
+                    const showSpy = jest.spyOn(mainWindow, 'show').mockImplementation(() =>
+                    {
+                        ipcMain.emit('FINISH_TEST');
+                    });
+                    ipcMain.on('FINISH_TEST', () =>
+                    {
+                        expect(showSpy).toHaveBeenCalledTimes(1);
+                        done();
+                    });
+                    getWindowTray().emit('click');
+                });
+            });
+        });
+        describe('emit right-click', () =>
+        {
+            test('It should show menu on right-click', (done) =>
+            {
+                createWindow();
+                /**
+                 * @type {BrowserWindow}
+                 */
+                const mainWindow = getMainWindow();
+                mainWindow.on('show', () =>
+                {
+                    const showSpy = jest.spyOn(getWindowTray(), 'popUpContextMenu').mockImplementation(() =>
+                    {
+                        ipcMain.emit('FINISH_TEST');
+                    });
+                    ipcMain.on('FINISH_TEST', () =>
+                    {
+                        expect(showSpy).toHaveBeenCalledTimes(1);
+                        done();
+                    });
+                    getWindowTray().emit('right-click');
+                });
+            });
+        });
+    });
+
+    describe('emit minimize', () =>
+    {
+        test('Should get hidden if minimize-to-tray is true', (done) =>
+        {
+            savePreferences({
+                ...defaultPreferences,
+                ['minimize-to-tray']: true
+            });
+            createWindow();
+            /**
+             * @type {BrowserWindow}
+             */
+            const mainWindow = getMainWindow();
+            mainWindow.on('show', () =>
+            {
+                mainWindow.emit('minimize', {
+                    preventDefault: () => {}
+                });
+                expect(mainWindow.isVisible()).toBe(false);
+                done();
+            });
+        });
+        test('Should minimize if minimize-to-tray is false', (done) =>
+        {
+            savePreferences({
+                ...defaultPreferences,
+                ['minimize-to-tray']: false
+            });
+            createWindow();
+            /**
+             * @type {BrowserWindow}
+             */
+            const mainWindow = getMainWindow();
+            mainWindow.on('show', () =>
+            {
+                mainWindow.emit('minimize', {
+                    preventDefault: () => {}
+                });
+                setTimeout(() =>
+                {
+                    expect(mainWindow.isVisible()).toBe(false);
+                    expect(mainWindow.isMinimized()).toBe(true);
+                    done();
+                }, 1000);
+            });
+        });
+    });
+    describe('emit close', () =>
+    {
+        test('Should get hidden if close-to-tray is true', (done) =>
+        {
+            savePreferences({
+                ...defaultPreferences,
+                ['close-to-tray']: true
+            });
+            createWindow();
+            /**
+             * @type {BrowserWindow}
+             */
+            const mainWindow = getMainWindow();
+            mainWindow.on('show', () =>
+            {
+                mainWindow.emit('close', {
+                    preventDefault: () => {}
+                });
+                expect(mainWindow.isDestroyed()).toBe(false);
+                expect(mainWindow.isVisible()).toBe(false);
+                done();
+            });
+        });
+        test('Should close if close-to-tray is false', (done) =>
+        {
+            savePreferences({
+                ...defaultPreferences,
+                ['close-to-tray']: false,
+                ['minimize-to-tray']: false
+            });
+            createWindow();
+            /**
+             * @type {BrowserWindow}
+             */
+            const mainWindow = getMainWindow();
+            mainWindow.on('show', () =>
+            {
+                // Force the exit
+                mainWindow.on('close', () =>
+                {
+                    mainWindow.destroy();
+                });
+                mainWindow.emit('close', {
+                    preventDefault: () => {}
+                });
+                expect(mainWindow.isDestroyed()).toBe(true);
+                done();
+            });
+        });
+    });
+
     afterEach(() =>
     {
         jest.restoreAllMocks();
         resetMainWindow();
+        resetPreferences();
     });
 
 });
