@@ -4,11 +4,58 @@ jest.mock('../../src/configs/i18next.config.js', () => ({
     getCurrentTranslation: jest.fn().mockImplementation((key) => key)
 }));
 
+jest.mock('../../js/windows', () => ({
+    openWaiverManagerWindow: jest.fn(),
+    prefWindow: jest.fn(),
+    getDialogCoordinates: jest.fn()
+}));
+
+jest.mock('electron', () =>
+{
+    const originalModule = jest.requireActual('electron');
+    return {
+        __esModule: true,
+        ...originalModule,
+        ipcRenderer: {
+            ...originalModule.ipcRenderer,
+            invoke: jest.fn().mockResolvedValueOnce('./').mockResolvedValue('./dummy_file.txt'),
+        },
+        app: {
+            quit: jest.fn()
+        },
+        BrowserWindow: {
+            ...originalModule.BrowserWindow,
+            getFocusedWindow: () =>
+            {
+                return {
+                    reload: jest.fn()
+                };
+            }
+        },
+        shell: {
+            ...originalModule.shell,
+            openExternal: jest.fn()
+        }
+    };
+});
+
+jest.mock('../../js/notification', () => ({
+    createNotification: jest.fn().mockImplementation(() => ({
+        show: jest.fn()
+    }))
+}));
+
+jest.mock('../../js/update-manager', () => ({
+    checkForUpdates: jest.fn()
+}));
+
+const updateManager = require('../../js/update-manager');
+const notification = require('../../js/notification');
+const windows = require('../../js/windows');
+const {app, BrowserWindow, shell} = require('electron');
 describe('menus.js', () =>
 {
-    beforeAll(() =>
-    {
-    });
+    const mocks = {};
 
     describe('getMainMenuTemplate', () =>
     {
@@ -16,6 +63,7 @@ describe('menus.js', () =>
         {
             expect(getMainMenuTemplate().length).toBe(3);
         });
+
         getMainMenuTemplate().forEach((menu) =>
         {
             test('Should be a separator or valid field', () =>
@@ -46,6 +94,24 @@ describe('menus.js', () =>
                 }
             });
         });
+
+        test('Should open waiver window', (done) =>
+        {
+            mocks.waiver = jest.spyOn(windows, 'openWaiverManagerWindow').mockImplementationOnce( () =>
+            {
+                done();
+            });
+            getMainMenuTemplate()[0].click();
+        });
+
+        test('Should close app', (done) =>
+        {
+            mocks.quit = jest.spyOn(app, 'quit').mockImplementationOnce(() =>
+            {
+                done();
+            });
+            getMainMenuTemplate()[2].click();
+        });
     });
 
     describe('getContextMenuTemplate', () =>
@@ -54,6 +120,7 @@ describe('menus.js', () =>
         {
             expect(getContextMenuTemplate().length).toBe(3);
         });
+
         getContextMenuTemplate().forEach((menu) =>
         {
             test('Should be a valid field', () =>
@@ -68,6 +135,40 @@ describe('menus.js', () =>
                     expect(typeof menu[t.field]).toBe(t.type);
                 }
             });
+
+        });
+
+        test('Should quit on click', () =>
+        {
+            const mainWindow = {
+                webContents: {
+                    executeJavaScript: (key) =>
+                    {
+                        expect(key).toBe('calendar.punchDate()');
+                    }
+                }
+            };
+            mocks.createNotificationSpy = jest.spyOn(notification, 'createNotification');
+            getContextMenuTemplate(mainWindow)[0].click();
+            expect(mocks.createNotificationSpy).toBeCalledTimes(1);
+        });
+
+        test('Should create notification on click', (done) =>
+        {
+            const mainWindow = {
+                show: done
+            };
+            getContextMenuTemplate(mainWindow)[1].click();
+        });
+
+        test('Should show window on click', (done) =>
+        {
+            mocks.quit = jest.spyOn(app, 'quit').mockImplementationOnce(() =>
+            {
+                done();
+            });
+            getContextMenuTemplate({})[2].click();
+            expect(mocks.quit).toBeCalledTimes(1);
         });
     });
 
@@ -77,6 +178,7 @@ describe('menus.js', () =>
         {
             expect(getDockMenuTemplate().length).toBe(1);
         });
+
         getDockMenuTemplate().forEach((menu) =>
         {
             test('Should be a valid field', () =>
@@ -92,6 +194,21 @@ describe('menus.js', () =>
                 }
             });
         });
+
+        test('Should create notification on click', () =>
+        {
+            const mainWindow = {
+                webContents: {
+                    executeJavaScript: (key) =>
+                    {
+                        expect(key).toBe('calendar.punchDate()');
+                    }
+                }
+            };
+            mocks.createNotificationSpy = jest.spyOn(notification, 'createNotification');
+            getContextMenuTemplate(mainWindow)[0].click();
+            expect(mocks.createNotificationSpy).toBeCalledTimes(1);
+        });
     });
 
     describe('getViewMenuTemplate', () =>
@@ -100,6 +217,7 @@ describe('menus.js', () =>
         {
             expect(getViewMenuTemplate().length).toBe(2);
         });
+
         getViewMenuTemplate().forEach((menu) =>
         {
             test('Should be a valid field', () =>
@@ -115,6 +233,32 @@ describe('menus.js', () =>
                 }
             });
         });
+
+        test('Should reload window', (done) =>
+        {
+            mocks.window = jest.spyOn(BrowserWindow, 'getFocusedWindow').mockImplementation(() =>
+            {
+                return {
+                    reload: () => done()
+                };
+            });
+
+            getViewMenuTemplate()[0].click();
+            expect(mocks.window).toBeCalledTimes(1);
+        });
+
+        test('Should toggle devtools', (done) =>
+        {
+            mocks.window = jest.spyOn(BrowserWindow, 'getFocusedWindow').mockImplementation(() =>
+            {
+                return {
+                    toggleDevTools: () => done()
+                };
+            });
+
+            getViewMenuTemplate()[1].click();
+            expect(mocks.window).toBeCalledTimes(1);
+        });
     });
 
     describe('getHelpMenuTemplate', () =>
@@ -123,6 +267,7 @@ describe('menus.js', () =>
         {
             expect(getHelpMenuTemplate().length).toBe(5);
         });
+
         getHelpMenuTemplate().forEach((menu) =>
         {
             test('Should be a valid field', () =>
@@ -131,16 +276,49 @@ describe('menus.js', () =>
                     {field : 'label', type: 'string'},
                     {field : 'click', type: 'function'},
                 ];
-                for (const t of tests)
+                if ('type' in menu)
                 {
-                    expect(menu[t.field]).toBeTruthy();
-                    expect(typeof menu[t.field]).toBe(t.type);
+                    expect(menu.type).toBe('separator');
                 }
-                if ('accelerator' in menu)
+                else
                 {
-                    expect(typeof menu.accelerator).toBe('string');
+                    for (const t of tests)
+                    {
+                        expect(menu[t.field]).toBeTruthy();
+                        expect(typeof menu[t.field]).toBe(t.type);
+                    }
                 }
             });
+        });
+
+        test('Should open github', (done) =>
+        {
+            mocks.window = jest.spyOn(shell, 'openExternal').mockImplementation((key) =>
+            {
+                expect(key).toBe('https://github.com/thamara/time-to-leave');
+                done();
+            });
+            getHelpMenuTemplate()[0].click();
+        });
+
+        test('Should open github', (done) =>
+        {
+            mocks.window = jest.spyOn(updateManager, 'checkForUpdates').mockImplementation((key) =>
+            {
+                expect(key).toBe(true);
+                done();
+            });
+            getHelpMenuTemplate()[1].click();
+        });
+
+        test('Should open feedback', (done) =>
+        {
+            mocks.window = jest.spyOn(shell, 'openExternal').mockImplementation((key) =>
+            {
+                expect(key).toBe('https://github.com/thamara/time-to-leave/issues/new');
+                done();
+            });
+            getHelpMenuTemplate()[2].click();
         });
     });
 
@@ -187,6 +365,14 @@ describe('menus.js', () =>
                 }
             });
         });
+    });
+
+    afterEach(() =>
+    {
+        for (const mock of Object.values(mocks))
+        {
+            mock.mockClear();
+        }
     });
 
     afterAll(() =>

@@ -285,6 +285,8 @@ module.exports = {
     createMenu,
     getMainWindow,
     triggerStartupDialogs,
+    shouldProposeFlexibleDbMigration,
+    proposeFlexibleDbMigration,
     resetMainWindow,
     getLeaveByInterval: () => leaveByInterval,
     getWindowTray: () => tray

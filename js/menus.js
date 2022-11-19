@@ -42,7 +42,8 @@ function getContextMenuTemplate(mainWindow)
 {
     return [
         {
-            label: getCurrentTranslation('$Menu.punch-time'), click: function()
+            label: getCurrentTranslation('$Menu.punch-time'),
+            click: function()
             {
                 const now = new Date();
 
@@ -52,13 +53,15 @@ function getContextMenuTemplate(mainWindow)
             }
         },
         {
-            label: getCurrentTranslation('$Menu.show-app'), click: function()
+            label: getCurrentTranslation('$Menu.show-app'),
+            click: function()
             {
                 mainWindow.show();
             }
         },
         {
-            label: getCurrentTranslation('$Menu.quit'), click: function()
+            label: getCurrentTranslation('$Menu.quit'),
+            click: function()
             {
                 app.quit();
             }

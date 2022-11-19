@@ -1,8 +1,16 @@
-const {getMainWindow, createWindow, resetMainWindow, getLeaveByInterval, getWindowTray} = require('../../js/main-window.js');
 const notification = require('../../js/notification.js');
 const userPreferences = require('../../js/user-preferences.js');
 const { savePreferences, defaultPreferences, resetPreferences } = userPreferences;
 const { BrowserWindow, ipcMain } = require('electron');
+
+jest.mock('../../js/update-manager', () => ({
+    checkForUpdates: jest.fn(),
+    shouldCheckForUpdates: jest.fn()
+}));
+
+const mainWindowModule = require('../../js/main-window.js');
+const {getMainWindow, createWindow, resetMainWindow, getLeaveByInterval, getWindowTray, triggerStartupDialogs} = mainWindowModule;
+const updateManager = require('../../js/update-manager');
 
 describe('main-window.js', () =>
 {
@@ -319,6 +327,30 @@ describe('main-window.js', () =>
                 expect(mainWindow.isDestroyed()).toBe(true);
                 done();
             });
+        });
+    });
+
+
+    describe('triggerStartupDialogs', () =>
+    {
+        test('Should check for updates and try to migrate', () =>
+        {
+            const shouldCheckUpdate = jest.spyOn(updateManager, 'shouldCheckForUpdates').mockImplementationOnce(() => true);
+            const checkUpdate = jest.spyOn(updateManager, 'checkForUpdates').mockImplementationOnce(() => {});
+
+            triggerStartupDialogs();
+            expect(shouldCheckUpdate).toHaveBeenCalledTimes(1);
+            expect(checkUpdate).toHaveBeenCalledTimes(1);
+        });
+
+        test('Should check for updates and try to migrate', () =>
+        {
+            const shouldCheckUpdate = jest.spyOn(updateManager, 'shouldCheckForUpdates').mockImplementationOnce(() => false);
+            const checkUpdate = jest.spyOn(updateManager, 'checkForUpdates').mockImplementationOnce(() => {});
+
+            triggerStartupDialogs();
+            expect(shouldCheckUpdate).toHaveBeenCalledTimes(2);
+            expect(checkUpdate).toHaveBeenCalledTimes(1);
         });
     });
 
