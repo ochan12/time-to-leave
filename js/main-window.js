@@ -24,7 +24,7 @@ import { notifyTimeToLeave } from './notification.js';
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow = null;
-
+let leaveByInterval = null;
 function getMainWindow()
 {
     return mainWindow;
@@ -92,7 +92,7 @@ function createWindow()
     // and load the index.html of the app.
     mainWindow.loadFile(path.join(__dirname, '../index.html'));
 
-    ipcMain.on('TOGGLE_TRAY_PUNCH_TIME', function(_event, arg)
+    ipcMain.on('TOGGLE_TRAY_PUNCH_TIME', (_event, arg) =>
     {
         const contextMenuTemplate = getContextMenuTemplate(mainWindow);
         contextMenuTemplate[0].enabled = arg;
@@ -116,7 +116,7 @@ function createWindow()
         if (notification) notification.show();
     });
 
-    setInterval(() =>
+    leaveByInterval = setInterval(() =>
     {
         mainWindow.webContents.send('GET_LEAVE_BY');
     }, 60 * 1000);
@@ -139,6 +139,10 @@ function createWindow()
         {
             event.preventDefault();
             mainWindow.hide();
+        }
+        else
+        {
+            mainWindow.minimize();
         }
     });
 
@@ -264,14 +268,15 @@ function shouldProposeFlexibleDbMigration()
 function resetMainWindow()
 {
     ipcMain.removeAllListeners();
-    if (mainWindow)
+    if (mainWindow && !mainWindow.isDestroyed())
     {
         mainWindow.close();
         mainWindow.removeAllListeners();
         mainWindow = null;
     }
     if (tray) tray.removeAllListeners();
-    clearInterval();
+    clearInterval(leaveByInterval);
+    leaveByInterval = null;
     tray = null;
 }
 
@@ -280,5 +285,7 @@ module.exports = {
     createMenu,
     getMainWindow,
     triggerStartupDialogs,
-    resetMainWindow
+    resetMainWindow,
+    getLeaveByInterval: () => leaveByInterval,
+    getWindowTray: () => tray
 };
