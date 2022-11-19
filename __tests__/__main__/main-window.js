@@ -1,15 +1,17 @@
 const {getMainWindow, createWindow, resetMainWindow, getLeaveByInterval, getWindowTray} = require('../../js/main-window.js');
 const notification = require('../../js/notification.js');
-const { savePreferences, defaultPreferences, resetPreferences } = require('../../js/user-preferences.js');
+const userPreferences = require('../../js/user-preferences.js');
+const { savePreferences, defaultPreferences, resetPreferences } = userPreferences;
 
 const { BrowserWindow, ipcMain } = require('electron');
 
 describe('main-window.js', () =>
 {
+    let showSpy;
     beforeEach(() =>
     {
         // Avoid showing the window
-        jest.spyOn(BrowserWindow.prototype, 'show').mockImplementation(() => {});
+        showSpy = jest.spyOn(BrowserWindow.prototype, 'show').mockImplementation(() => {});
     });
 
     describe('getMainWindow', () =>
@@ -24,6 +26,7 @@ describe('main-window.js', () =>
         test('Should get window', () =>
         {
             createWindow();
+            expect(showSpy).toHaveBeenCalledTimes(1);
             expect(getMainWindow()).toBeInstanceOf(BrowserWindow);
         });
     });
@@ -46,6 +49,7 @@ describe('main-window.js', () =>
             expect(mainWindow.listenerCount('minimize')).toBe(2);
             expect(mainWindow.listenerCount('close')).toBe(1);
             expect(loadFileSpy).toHaveBeenCalledTimes(1);
+            expect(showSpy).toHaveBeenCalledTimes(1);
             expect(getLeaveByInterval()).not.toBe(null);
             expect(getLeaveByInterval()._idleNext.expiry).toBeGreaterThan(0);
         });
@@ -241,10 +245,17 @@ describe('main-window.js', () =>
         });
         test('Should minimize if minimize-to-tray is false', (done) =>
         {
+            const userPreferencesSpy = jest.spyOn(userPreferences, 'getUserPreferences');
+            jest.spyOn(BrowserWindow.prototype, 'minimize').mockImplementation(() =>
+            {
+                expect(userPreferencesSpy).toHaveBeenCalledTimes(1);
+                done();
+            });
             savePreferences({
                 ...defaultPreferences,
                 ['minimize-to-tray']: false
             });
+
             createWindow();
             /**
              * @type {BrowserWindow}
@@ -252,15 +263,7 @@ describe('main-window.js', () =>
             const mainWindow = getMainWindow();
             mainWindow.on('ready-to-show', () =>
             {
-                mainWindow.emit('minimize', {
-                    preventDefault: () => {}
-                });
-                setTimeout(() =>
-                {
-                    expect(mainWindow.isVisible()).toBe(false);
-                    expect(mainWindow.isMinimized()).toBe(true);
-                    done();
-                }, 1000);
+                mainWindow.emit('minimize', {});
             });
         });
     });
