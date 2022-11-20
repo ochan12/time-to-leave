@@ -197,6 +197,20 @@ describe('Test Workday Waiver Window', function()
 
     describe('Delete waiver', () =>
     {
+        test('Waiver was not deleted', () =>
+        {
+            prepareMockup();
+            addTestWaiver('2020-07-16', 'some reason');
+            const deleteBtn = document.querySelectorAll('#waiver-list-table .delete-btn')[0];
+            showDialog.mockImplementation((options, cb) =>
+            {
+                cb({ response: 1 });
+            });
+            deleteEntryOnClick({target: deleteBtn});
+            const length = document.querySelectorAll('#waiver-list-table .delete-btn').length;
+            expect(length).toBe(1);
+        });
+
         test('Waiver was deleted', () =>
         {
             prepareMockup();
@@ -353,6 +367,15 @@ describe('Test Workday Waiver Window', function()
             expect(mockCallback).toBeCalledTimes(holidaysLength);
         });
 
+        test('Do not load holidays table on empty holidays', () =>
+        {
+            loadHolidaysTable();
+            const holidaysLength = 0;
+            const rowLength = $('#holiday-list-table tbody tr').length;
+            expect($('#holiday-list-table').css('display')).toBe('table');
+            expect(holidaysLength).toBe(rowLength);
+        });
+
         test('Load holidays table', () =>
         {
             $('#year').append($('<option selected></option>').val(year).html(year));
@@ -404,6 +427,50 @@ describe('Test Workday Waiver Window', function()
             expect(firstCell).toBe(day);
             expect(secondCell).toBe(reason);
             expect(thirdCell).toBe('undefined');
+            expect(fourthCell).toEqual(fourthCellContent);
+        });
+
+        test('Holiday added not working day, no conflicts', () =>
+        {
+            const day = 'test day';
+            const reason = 'test reason';
+            const workingDay = 'No';
+            const conflicts = undefined;
+            addHolidayToList(day, reason, workingDay);
+            const table = $('#holiday-list-table tbody');
+            const rowsLength = table.find('tr').length;
+            expect(rowsLength).toBe(1);
+            const firstCell = table.find('td')[0].innerHTML;
+            const secondCell = table.find('td')[1].innerHTML;
+            const thirdCell = table.find('td')[2].innerHTML;
+            const fourthCell = table.find('td')[4].innerHTML;
+            const fourthCellContent = `<label class="switch"><input type="checkbox" checked="${conflicts || workingDay === 'No' ? '' : 'checked'}" name="import-${day}" id="import-${day}"><span class="slider round"></span></label>`;
+            expect(firstCell).toBe(day);
+            expect(secondCell).toBe(reason);
+            expect(thirdCell).toBe(workingDay);
+            expect(fourthCell).toEqual(fourthCellContent);
+        });
+
+        test('Holiday added not working day, with conflicts', () =>
+        {
+            const day = 'test day';
+            const reason = 'test reason';
+            const workingDay = 'No';
+            const conflicts = '<span>this is a conflict</span>';
+            addHolidayToList(day, reason, workingDay, conflicts);
+            const table = $('#holiday-list-table tbody');
+            const rowsLength = table.find('tr').length;
+            expect(rowsLength).toBe(1);
+            const firstCell = table.find('td')[0].innerHTML;
+            const secondCell = table.find('td')[1].innerHTML;
+            const thirdCell = table.find('td')[2].innerHTML;
+            const conflictsCell = table.find('td')[3].innerHTML;
+            const fourthCell = table.find('td')[4].innerHTML;
+            const fourthCellContent = `<label class="switch"><input type="checkbox" checked="${conflicts || workingDay === 'No' ? '' : 'checked'}" name="import-${day}" id="import-${day}"><span class="slider round"></span></label>`;
+            expect(firstCell).toBe(day);
+            expect(secondCell).toBe(reason);
+            expect(thirdCell).toBe(workingDay);
+            expect(conflictsCell).toBe(conflicts);
             expect(fourthCell).toEqual(fourthCellContent);
         });
     });
