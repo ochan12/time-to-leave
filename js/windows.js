@@ -8,9 +8,9 @@ import { getDateStr } from './date-aux.js';
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let waiverWindow = null;
-let prefWindow = null;
-let tray = null;
-let contextMenu = null;
+const prefWindow = null;
+const tray = null;
+const contextMenu = null;
 
 function openWaiverManagerWindow(mainWindow, event)
 {
@@ -49,7 +49,7 @@ function openWaiverManagerWindow(mainWindow, event)
 }
 
 /**
- * Return the x and y coordinate for a dialog window,
+ * Return the x and y coordinate for a dialog window, 
  * so the dialog window is centered on the TTL window.
  * Round values, as coordinates have to be integers.
  * @param {number} dialogWidth
@@ -58,31 +58,17 @@ function openWaiverManagerWindow(mainWindow, event)
  */
 function getDialogCoordinates(dialogWidth, dialogHeight, mainWindow)
 {
-    return {
+    return{
         x : Math.round(mainWindow.getBounds().x + mainWindow.getBounds().width/2 - dialogWidth/2),
         y : Math.round(mainWindow.getBounds().y + mainWindow.getBounds().height/2 - dialogHeight/2),
     };
 }
 
-function resetWindowsElements()
-{
-    waiverWindow = null;
-    prefWindow = null;
-    tray = null;
-    contextMenu = null;
-}
-
-function getWaiverWindow()
-{
-    return waiverWindow;
-}
-
 module.exports = {
+    waiverWindow,
     prefWindow,
     tray,
     contextMenu,
     openWaiverManagerWindow,
-    getDialogCoordinates,
-    resetWindowsElements,
-    getWaiverWindow
+    getDialogCoordinates
 };
