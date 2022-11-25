@@ -274,7 +274,10 @@ function resetMainWindow()
         mainWindow.removeAllListeners();
         mainWindow = null;
     }
-    if (tray) tray.removeAllListeners();
+    if (tray)
+    {
+        tray.removeAllListeners();
+    }
     clearInterval(leaveByInterval);
     leaveByInterval = null;
     tray = null;
