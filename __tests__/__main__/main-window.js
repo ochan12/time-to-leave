@@ -137,7 +137,7 @@ describe('main-window.js', () =>
             const mainWindow = getMainWindow();
             mainWindow.on('ready-to-show', () =>
             {
-                const windowSpy = jest.spyOn(notification, 'notifyTimeToLeave').mockImplementation(() =>
+                const windowSpy = jest.spyOn(notification, 'createTTLNotification').mockImplementation(() =>
                 {
                     return false;
                 });
@@ -157,7 +157,7 @@ describe('main-window.js', () =>
             const mainWindow = getMainWindow();
             mainWindow.on('ready-to-show', () =>
             {
-                const windowSpy = jest.spyOn(notification, 'notifyTimeToLeave').mockImplementation(() =>
+                const windowSpy = jest.spyOn(notification, 'createTTLNotification').mockImplementation(() =>
                 {
                     return {
                         show: () =>

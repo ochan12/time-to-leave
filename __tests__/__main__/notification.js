@@ -1,7 +1,7 @@
 /* eslint-disable no-undef */
 'use strict';
 
-const { createNotification, notifyTimeToLeave, updateDismiss, getDismiss } = require('../../js/notification');
+const { createNotification, createTTLNotification, updateDismiss, getDismiss } = require('../../js/notification');
 const { getUserPreferences, savePreferences, resetPreferences } = require('../../js/user-preferences');
 const { getDateStr } = require('../../js/date-aux.js');
 const { app } = require('electron');
@@ -74,20 +74,20 @@ describe('Notifications', function()
 
     });
 
-    describe('notifyTimeToLeave', () =>
+    describe('createTTLNotification', () =>
     {
         test('Should fail when notifications are disabled', () =>
         {
             const preferences = getUserPreferences();
             preferences['notification'] = false;
             savePreferences(preferences);
-            const notify = notifyTimeToLeave(true);
+            const notify = createTTLNotification(true);
             expect(notify).toBe(false);
         });
 
         test('Should fail when leaveByElement is not found', () =>
         {
-            const notify = notifyTimeToLeave(undefined);
+            const notify = createTTLNotification(undefined);
             expect(notify).toBe(false);
         });
 
@@ -96,13 +96,13 @@ describe('Notifications', function()
             const now = new Date();
             const dateToday = getDateStr(now);
             updateDismiss(dateToday);
-            const notify = notifyTimeToLeave(true);
+            const notify = createTTLNotification(true);
             expect(notify).toBe(false);
         });
 
         test('Should fail when time is not valid', () =>
         {
-            const notify = notifyTimeToLeave('33:90');
+            const notify = createTTLNotification('33:90');
             expect(notify).toBe(false);
         });
 
@@ -111,7 +111,7 @@ describe('Notifications', function()
             jest.restoreAllMocks();
             const now = new Date();
             now.setMinutes( now.getMinutes() + 1);
-            const notify = notifyTimeToLeave(buildTimeString(now));
+            const notify = createTTLNotification(buildTimeString(now));
             expect(notify).toBe(false);
         });
 
@@ -122,7 +122,7 @@ describe('Notifications', function()
             savePreferences(preferences);
             const now = new Date();
             now.setHours(now.getHours() - 1, now.getMinutes() - 5);
-            const notify = notifyTimeToLeave(buildTimeString(now));
+            const notify = createTTLNotification(buildTimeString(now));
             expect(notify).toBe(false);
         });
 
@@ -134,7 +134,7 @@ describe('Notifications', function()
             savePreferences(preferences);
             const now = new Date();
             now.setHours(now.getHours() - 1);
-            const notify = notifyTimeToLeave(buildTimeString(now));
+            const notify = createTTLNotification(buildTimeString(now));
             expect(notify).toBe(false);
         });
 
@@ -142,7 +142,7 @@ describe('Notifications', function()
         {
             const now = new Date();
             now.setHours(now.getHours());
-            const notify = notifyTimeToLeave(buildTimeString(now));
+            const notify = createTTLNotification(buildTimeString(now));
             expect(notify).toBeTruthy();
             expect(notify.listenerCount('action')).toBe(1);
             expect(notify.listenerCount('close')).toBe(1);
@@ -155,7 +155,7 @@ describe('Notifications', function()
         {
             const now = new Date();
             now.setHours(now.getHours());
-            const notify = notifyTimeToLeave(buildTimeString(now));
+            const notify = createTTLNotification(buildTimeString(now));
             expect(notify).toBeTruthy();
             expect(notify.listenerCount('action')).toBe(1);
             expect(notify.listenerCount('close')).toBe(1);
@@ -168,7 +168,7 @@ describe('Notifications', function()
         {
             const now = new Date();
             now.setHours(now.getHours());
-            const notify = notifyTimeToLeave(buildTimeString(now));
+            const notify = createTTLNotification(buildTimeString(now));
             expect(notify).toBeTruthy();
             expect(notify.listenerCount('action')).toBe(1);
             expect(notify.listenerCount('close')).toBe(1);
@@ -186,7 +186,7 @@ describe('Notifications', function()
             });
             const now = new Date();
             now.setHours(now.getHours());
-            const notify = notifyTimeToLeave(buildTimeString(now));
+            const notify = createTTLNotification(buildTimeString(now));
             expect(notify).toBeTruthy();
             expect(notify.listenerCount('action')).toBe(1);
             expect(notify.listenerCount('close')).toBe(1);
