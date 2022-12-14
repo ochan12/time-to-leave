@@ -68,6 +68,10 @@ function createNotification(msg, actions = [])
         });
 
     }
+    notification.addListener('click', () =>
+    {
+        app.emit('activate');
+    });
     return notification;
 }
 
@@ -114,9 +118,6 @@ function createTTLNotification(timeToLeave)
                     // We'll assume that if someone closes the notification they're
                     // dismissing the notifications
                     dismissToday = dateToday;
-                }).addListener('click', () =>
-                {
-                    app.emit('activate');
                 });
         }
     }
