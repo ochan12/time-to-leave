@@ -23,7 +23,7 @@ describe('main-window.js', () =>
 
     describe('getMainWindow', () =>
     {
-        test('Should be null  if it has not been started', () =>
+        test('Should be null if it has not been started', () =>
         {
             expect(getWindowTray()).toBe(null);
             expect(getMainWindow()).toBe(null);
