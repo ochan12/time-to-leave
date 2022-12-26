@@ -52,7 +52,6 @@ function createNotification(msg, actions = [])
             title: 'Time to Leave',
             body: msg,
             icon: path.join(appPath, 'assets/ttl.png'),
-            timeoutType: 'default',
             sound: true
         });
     }
@@ -62,7 +61,6 @@ function createNotification(msg, actions = [])
             title: 'Time to Leave',
             body: msg,
             icon: path.join(appPath, 'assets/ttl.png'),
-            timeoutType: 'default',
             sound: true,
             actions
         });
