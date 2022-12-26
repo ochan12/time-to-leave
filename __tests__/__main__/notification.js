@@ -1,8 +1,8 @@
 /* eslint-disable no-undef */
 'use strict';
 
-const { createNotification, createTTLNotification, updateDismiss, getDismiss } = require('../../js/notification');
-const { getUserPreferences, savePreferences, resetPreferences } = require('../../js/user-preferences');
+const { createNotification, createTTLNotification, updateDismiss, getDismiss } = require('../../js/notification.js');
+const { getUserPreferences, savePreferences, resetPreferences } = require('../../js/user-preferences.js');
 const { getDateStr } = require('../../js/date-aux.js');
 const { app } = require('electron');
 
