@@ -118,7 +118,9 @@ describe('Notifications', function()
         test('Should fail when time is in the past', () =>
         {
             const now = new Date();
-            now.setHours(now.getHours() - 1, now.getMinutes() - 5);
+            // Forcing minute 1 since will not conflict with default
+            // notification interval (every 5 minutes)
+            now.setHours(now.getHours() - 1, 1);
             const notify = createTTLNotification(buildTimeString(now));
             expect(notify).toBe(false);
         });
@@ -137,7 +139,6 @@ describe('Notifications', function()
         test('Should pass when time is correct and dismiss action is pressed', () =>
         {
             const now = new Date();
-            now.setHours(now.getHours());
             const notify = createTTLNotification(buildTimeString(now));
             expect(notify).toBeTruthy();
             expect(notify.listenerCount('action')).toBe(1);
@@ -150,7 +151,6 @@ describe('Notifications', function()
         test('Should pass when time is correct and other action is pressed', () =>
         {
             const now = new Date();
-            now.setHours(now.getHours());
             const notify = createTTLNotification(buildTimeString(now));
             expect(notify).toBeTruthy();
             expect(notify.listenerCount('action')).toBe(1);
@@ -163,7 +163,6 @@ describe('Notifications', function()
         test('Should pass when time is correct and close is pressed', () =>
         {
             const now = new Date();
-            now.setHours(now.getHours());
             const notify = createTTLNotification(buildTimeString(now));
             expect(notify).toBeTruthy();
             expect(notify.listenerCount('action')).toBe(1);
@@ -181,7 +180,6 @@ describe('Notifications', function()
                 done();
             });
             const now = new Date();
-            now.setHours(now.getHours());
             const notify = createTTLNotification(buildTimeString(now));
             expect(notify).toBeTruthy();
             expect(notify.listenerCount('action')).toBe(1);
