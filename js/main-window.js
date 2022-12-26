@@ -140,10 +140,6 @@ function createWindow()
             event.preventDefault();
             mainWindow.hide();
         }
-        else
-        {
-            mainWindow.minimize();
-        }
     });
 
     // Emitted when the window is closed.
