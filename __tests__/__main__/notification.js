@@ -106,20 +106,17 @@ describe('Notifications', function()
             expect(notify).toBe(false);
         });
 
-        test('Should fail when time is later', () =>
+        test('Should fail when time is in the future', () =>
         {
             jest.restoreAllMocks();
             const now = new Date();
-            now.setMinutes( now.getMinutes() + 1);
+            now.setMinutes(now.getMinutes() + 1);
             const notify = createTTLNotification(buildTimeString(now));
             expect(notify).toBe(false);
         });
 
         test('Should fail when time is in the past', () =>
         {
-            const preferences = getUserPreferences();
-            preferences['notifications-interval'] = 30;
-            savePreferences(preferences);
             const now = new Date();
             now.setHours(now.getHours() - 1, now.getMinutes() - 5);
             const notify = createTTLNotification(buildTimeString(now));
@@ -129,7 +126,6 @@ describe('Notifications', function()
         test('Should fail when repetition is disabled', () =>
         {
             const preferences = getUserPreferences();
-            preferences['notifications-interval'] = 30;
             preferences['repetition'] = false;
             savePreferences(preferences);
             const now = new Date();
