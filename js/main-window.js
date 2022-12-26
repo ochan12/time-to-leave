@@ -19,7 +19,7 @@ let { contextMenu, tray } = require('./windows.js');
 
 import { getDefaultWidthHeight, getUserPreferences } from './user-preferences.js';
 import { appConfig, getDetails } from './app-config.js';
-import { createTTLNotification } from './notification.js';
+import { createLeaveNotification } from './notification.js';
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -112,7 +112,7 @@ function createWindow()
 
     ipcMain.on('RECEIVE_LEAVE_BY', (event, element) =>
     {
-        const notification = createTTLNotification(element);
+        const notification = createLeaveNotification(element);
         if (notification) notification.show();
     });
 

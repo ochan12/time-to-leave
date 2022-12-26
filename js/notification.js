@@ -76,7 +76,7 @@ function createNotification(msg, actions = [])
 /*
  * Notify user if it's time to leave
  */
-function createTTLNotification(timeToLeave)
+function createLeaveNotification(timeToLeave)
 {
     const now = new Date();
     const dateToday = getDateStr(now);
@@ -142,6 +142,6 @@ function getDismiss()
 module.exports = {
     createNotification,
     getDismiss,
-    createTTLNotification,
+    createLeaveNotification,
     updateDismiss,
 };
