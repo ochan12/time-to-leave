@@ -124,11 +124,18 @@ function createTTLNotification(timeToLeave)
     return false;
 }
 
+/**
+ * Test related function to force a dismiss value
+ * @param {String} dismiss Dismiss value in HH:MM format
+ */
 function updateDismiss(dismiss)
 {
     dismissToday = dismiss;
 }
 
+/**
+ * Test related function to get the dismiss value
+ */
 function getDismiss()
 {
     return dismissToday;
