@@ -15,6 +15,12 @@ describe('Notifications', function()
 {
     describe('notify', () =>
     {
+        beforeAll(() =>
+        {
+            // displays a notification in test fails if mocks are not restored
+            jest.restoreAllMocks();
+        });
+
         test('displays a notification in test', (done) =>
         {
             process.env.NODE_ENV = 'test';
@@ -118,9 +124,7 @@ describe('Notifications', function()
         test('Should fail when time is in the past', () =>
         {
             const now = new Date();
-            // Forcing minute 1 since will not conflict with default
-            // notification interval (every 5 minutes)
-            now.setHours(now.getHours() - 1, 1);
+            now.setMinutes(now.getMinutes() - 9);
             const notify = createTTLNotification(buildTimeString(now));
             expect(notify).toBe(false);
         });
