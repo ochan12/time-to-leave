@@ -17,7 +17,6 @@ describe('Notifications', function()
     {
         test('displays a notification in test', (done) =>
         {
-            jest.restoreAllMocks();
             process.env.NODE_ENV = 'test';
             const notification = createNotification('test');
             expect(notification.body).toBe('test');
@@ -25,6 +24,7 @@ describe('Notifications', function()
             notification.on('show', (event) =>
             {
                 expect(event).toBeTruthy();
+                expect(event.sender.title).toBe('Time to Leave');
                 notification.close();
                 done();
             });
@@ -144,6 +144,7 @@ describe('Notifications', function()
             expect(notify.listenerCount('action')).toBe(1);
             expect(notify.listenerCount('close')).toBe(1);
             expect(notify.listenerCount('click')).toBe(1);
+            expect(getDismiss()).toBe(null);
             notify.emit('action', 'dismiss');
             expect(getDismiss()).toBe(getDateStr(now));
         });
