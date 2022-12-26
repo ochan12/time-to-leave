@@ -9,8 +9,8 @@ jest.mock('../../js/update-manager', () => ({
 }));
 
 const mainWindowModule = require('../../js/main-window.js');
-const {getMainWindow, createWindow, resetMainWindow, getLeaveByInterval, getWindowTray, triggerStartupDialogs} = mainWindowModule;
-const updateManager = require('../../js/update-manager');
+const { getMainWindow, createWindow, resetMainWindow, getLeaveByInterval, getWindowTray, triggerStartupDialogs } = mainWindowModule;
+const updateManager = require('../../js/update-manager.js');
 
 describe('main-window.js', () =>
 {
