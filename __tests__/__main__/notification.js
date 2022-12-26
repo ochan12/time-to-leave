@@ -115,7 +115,7 @@ describe('Notifications', function()
             expect(notify).toBe(false);
         });
 
-        test('Should fail when time is before', () =>
+        test('Should fail when time is in the past', () =>
         {
             const preferences = getUserPreferences();
             preferences['notifications-interval'] = 30;
