@@ -145,10 +145,10 @@ describe('Notifications', function()
             const now = new Date();
             const notify = createLeaveNotification(buildTimeString(now));
             expect(notify).toBeTruthy();
+            expect(getDismiss()).toBe(null);
             expect(notify.listenerCount('action')).toBe(1);
             expect(notify.listenerCount('close')).toBe(1);
             expect(notify.listenerCount('click')).toBe(1);
-            expect(getDismiss()).toBe(null);
             notify.emit('action', 'dismiss');
             expect(getDismiss()).toBe(getDateStr(now));
         });
@@ -158,6 +158,7 @@ describe('Notifications', function()
             const now = new Date();
             const notify = createLeaveNotification(buildTimeString(now));
             expect(notify).toBeTruthy();
+            expect(getDismiss()).toBe(null);
             expect(notify.listenerCount('action')).toBe(1);
             expect(notify.listenerCount('close')).toBe(1);
             expect(notify.listenerCount('click')).toBe(1);
@@ -170,6 +171,7 @@ describe('Notifications', function()
             const now = new Date();
             const notify = createLeaveNotification(buildTimeString(now));
             expect(notify).toBeTruthy();
+            expect(getDismiss()).toBe(null);
             expect(notify.listenerCount('action')).toBe(1);
             expect(notify.listenerCount('close')).toBe(1);
             expect(notify.listenerCount('click')).toBe(1);
