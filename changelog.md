@@ -32,10 +32,13 @@
 -   Fix [#877]: Dialogs open in wrong monitor in multi-monitor configuration
 -   Fix [#884]: Slightly moving the date picker icon margin in Day view
 -   Fix [#890]: Leave by field to be updated with removal of entries
+-   Fix [#892]: start menu entry title on Windows is hyphenated
+-   Fix [#925]: Punch from tray and reload after changing database do not work
 -   Translation: Time to Leave is now available in Bengali (bn)!
 -   Translation: Time to Leave is now available in Gujarati (gu)!
 -   Translation: Time to Leave is now available in Hebrew (he)!
 -   Translation: Time to Leave is now available in Persian (fa-IR)!
+-   Translation: Time to Leave is now available in Portuguese (pt-PT)!
 -   Translation: Time to Leave is now available in Russian (ru-RU)!
 -   Translation: Time to Leave is now available in Swedish (sv-SE)!
 -   Translation: Time to Leave is now available in Turkish (tr-TR)!
@@ -77,6 +80,7 @@ Who built 2.0.2:
 -   chopinballadeno4
 -   dark-coder155
 -   domstrozynski
+-   drcor
 -   fcoiuri
 -   fikimaul
 -   giovannipessiva
