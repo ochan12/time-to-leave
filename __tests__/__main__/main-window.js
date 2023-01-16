@@ -9,8 +9,8 @@ jest.mock('../../js/update-manager', () => ({
 }));
 
 const mainWindowModule = require('../../js/main-window.js');
-const {getMainWindow, createWindow, resetMainWindow, getLeaveByInterval, getWindowTray, triggerStartupDialogs} = mainWindowModule;
-const updateManager = require('../../js/update-manager');
+const { getMainWindow, createWindow, resetMainWindow, getLeaveByInterval, getWindowTray, triggerStartupDialogs } = mainWindowModule;
+const updateManager = require('../../js/update-manager.js');
 
 describe('main-window.js', () =>
 {
@@ -23,7 +23,7 @@ describe('main-window.js', () =>
 
     describe('getMainWindow', () =>
     {
-        test('Should be null  if it has not been started', () =>
+        test('Should be null if it has not been started', () =>
         {
             expect(getWindowTray()).toBe(null);
             expect(getMainWindow()).toBe(null);
@@ -137,7 +137,7 @@ describe('main-window.js', () =>
             const mainWindow = getMainWindow();
             mainWindow.on('ready-to-show', () =>
             {
-                const windowSpy = jest.spyOn(notification, 'notifyTimeToLeave').mockImplementation(() =>
+                const windowSpy = jest.spyOn(notification, 'createLeaveNotification').mockImplementation(() =>
                 {
                     return false;
                 });
@@ -157,7 +157,7 @@ describe('main-window.js', () =>
             const mainWindow = getMainWindow();
             mainWindow.on('ready-to-show', () =>
             {
-                const windowSpy = jest.spyOn(notification, 'notifyTimeToLeave').mockImplementation(() =>
+                const windowSpy = jest.spyOn(notification, 'createLeaveNotification').mockImplementation(() =>
                 {
                     return {
                         show: () =>
@@ -256,11 +256,6 @@ describe('main-window.js', () =>
         test('Should minimize if minimize-to-tray is false', (done) =>
         {
             const userPreferencesSpy = jest.spyOn(userPreferences, 'getUserPreferences');
-            jest.spyOn(BrowserWindow.prototype, 'minimize').mockImplementation(() =>
-            {
-                expect(userPreferencesSpy).toHaveBeenCalledTimes(1);
-                done();
-            });
             savePreferences({
                 ...defaultPreferences,
                 ['minimize-to-tray']: false
@@ -274,6 +269,8 @@ describe('main-window.js', () =>
             mainWindow.on('ready-to-show', () =>
             {
                 mainWindow.emit('minimize', {});
+                expect(userPreferencesSpy).toHaveBeenCalledTimes(1);
+                done();
             });
         });
     });

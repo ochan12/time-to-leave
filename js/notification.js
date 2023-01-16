@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const {app} = require('electron');
+const { app } = require('electron');
 const ElectronNotification = require('electron').Notification;
 
 const {
@@ -52,7 +52,6 @@ function createNotification(msg, actions = [])
             title: 'Time to Leave',
             body: msg,
             icon: path.join(appPath, 'assets/ttl.png'),
-            timeoutType: 'default',
             sound: true
         });
     }
@@ -62,30 +61,33 @@ function createNotification(msg, actions = [])
             title: 'Time to Leave',
             body: msg,
             icon: path.join(appPath, 'assets/ttl.png'),
-            timeoutType: 'default',
             sound: true,
             actions
         });
 
     }
+    notification.addListener('click', () =>
+    {
+        app.emit('activate');
+    });
     return notification;
 }
 
 /*
  * Notify user if it's time to leave
  */
-function notifyTimeToLeave(leaveByElement)
+function createLeaveNotification(timeToLeave)
 {
     const now = new Date();
     const dateToday = getDateStr(now);
     const skipNotify = dismissToday === dateToday;
 
-    if (!notificationIsEnabled() || !leaveByElement || skipNotify)
+    if (!notificationIsEnabled() || !timeToLeave || skipNotify)
     {
         return false;
     }
 
-    if (validateTime(leaveByElement))
+    if (validateTime(timeToLeave))
     {
         /**
          * How many minutes should pass before the Time-To-Leave notification should be presented again.
@@ -95,16 +97,15 @@ function notifyTimeToLeave(leaveByElement)
         const curTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
 
         // Let check if it's past the time to leave, and the minutes line up with the interval to check
-        const minutesDiff = hourToMinutes(subtractTime(leaveByElement, curTime));
-        const isRepeatingInterval = curTime > leaveByElement && (minutesDiff % notificationInterval === 0);
-        if (curTime === leaveByElement || (isRepeatingInterval && repetitionIsEnabled()))
+        const minutesDiff = hourToMinutes(subtractTime(timeToLeave, curTime));
+        const isRepeatingInterval = curTime > timeToLeave && (minutesDiff % notificationInterval === 0);
+        if (curTime === timeToLeave || (isRepeatingInterval && repetitionIsEnabled()))
         {
 
             const dismissBtn = {type: 'button', text: getCurrentTranslation('$Notification.dismiss-for-today'), action: 'dismiss', title: 'dismiss'};
             return createNotification(getCurrentTranslation('$Notification.time-to-leave'), [dismissBtn])
                 .addListener('action', (response) =>
                 {
-                    console.log('Pressed action');
                     // Actions are only supported on macOS
                     if ( response && dismissBtn.title.toLowerCase() === response.toLowerCase())
                     {
@@ -115,20 +116,24 @@ function notifyTimeToLeave(leaveByElement)
                     // We'll assume that if someone closes the notification they're
                     // dismissing the notifications
                     dismissToday = dateToday;
-                }).addListener('click', () =>
-                {
-                    app.emit('activate');
                 });
         }
     }
     return false;
 }
 
+/**
+ * Test related function to force a dismiss value
+ * @param {String} dismiss Dismiss value in HH:MM format
+ */
 function updateDismiss(dismiss)
 {
     dismissToday = dismiss;
 }
 
+/**
+ * Test related function to get the dismiss value
+ */
 function getDismiss()
 {
     return dismissToday;
@@ -137,6 +142,6 @@ function getDismiss()
 module.exports = {
     createNotification,
     getDismiss,
-    notifyTimeToLeave,
+    createLeaveNotification,
     updateDismiss,
 };

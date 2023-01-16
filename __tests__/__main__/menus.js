@@ -171,9 +171,9 @@ describe('menus.js', () =>
         {
             const mainWindow = {
                 webContents: {
-                    executeJavaScript: (key) =>
+                    send: (key) =>
                     {
-                        expect(key).toBe('calendar.punchDate()');
+                        expect(key).toBe('PUNCH_DATE');
                     }
                 }
             };
@@ -228,9 +228,9 @@ describe('menus.js', () =>
         {
             const mainWindow = {
                 webContents: {
-                    executeJavaScript: (key) =>
+                    send: (key) =>
                     {
-                        expect(key).toBe('calendar.punchDate()');
+                        expect(key).toBe('PUNCH_DATE');
                     }
                 }
             };
@@ -453,9 +453,9 @@ describe('menus.js', () =>
             expect.assertions(5);
             const mainWindow = {
                 webContents: {
-                    executeJavaScript: (key) =>
+                    send: (key) =>
                     {
-                        expect(key).toBe('calendar.reload()');
+                        expect(key).toBe('RELOAD_CALENDAR');
                     }
                 }
             };
@@ -478,9 +478,9 @@ describe('menus.js', () =>
             expect.assertions(5);
             const mainWindow = {
                 webContents: {
-                    executeJavaScript: (key) =>
+                    send: (key) =>
                     {
-                        expect(key).toBe('calendar.reload()');
+                        expect(key).toBe('RELOAD_CALENDAR');
                     }
                 }
             };
@@ -503,9 +503,9 @@ describe('menus.js', () =>
             expect.assertions(5);
             const mainWindow = {
                 webContents: {
-                    executeJavaScript: (key) =>
+                    send: (key) =>
                     {
-                        expect(key).toBe('calendar.reload()');
+                        expect(key).toBe('RELOAD_CALENDAR');
                     }
                 }
             };
@@ -562,9 +562,9 @@ describe('menus.js', () =>
         {
             const mainWindow = {
                 webContents: {
-                    executeJavaScript: (key) =>
+                    send: (key) =>
                     {
-                        expect(key).toBe('calendar.reload()');
+                        expect(key).toBe('RELOAD_CALENDAR');
                     }
                 }
             };

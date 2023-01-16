@@ -109,9 +109,10 @@ app.on('ready', () =>
 {
     setupI18n(createMenu).then(() =>
     {
-        if (process.platform === 'win32' && process.env !== 'production')
+        // On other platforms the header is automatically set, but on windows
+        // we need to force the name so it doesn't appear as `electron.app.Electron`
+        if (process.platform === 'win32')
         {
-            // This is used to change the header on windows toasts
             app.setAppUserModelId('Time to Leave');
         }
         createWindow();

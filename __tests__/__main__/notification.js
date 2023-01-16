@@ -1,8 +1,8 @@
 /* eslint-disable no-undef */
 'use strict';
 
-const { createNotification, notifyTimeToLeave, updateDismiss, getDismiss } = require('../../js/notification');
-const { getUserPreferences, savePreferences, resetPreferences } = require('../../js/user-preferences');
+const { createNotification, createLeaveNotification, updateDismiss, getDismiss } = require('../../js/notification.js');
+const { getUserPreferences, savePreferences, resetPreferences } = require('../../js/user-preferences.js');
 const { getDateStr } = require('../../js/date-aux.js');
 const { app } = require('electron');
 
@@ -15,6 +15,12 @@ describe('Notifications', function()
 {
     describe('notify', () =>
     {
+        beforeAll(() =>
+        {
+            // displays a notification in test fails if mocks are not restored
+            jest.restoreAllMocks();
+        });
+
         test('displays a notification in test', (done) =>
         {
             jest.restoreAllMocks();
@@ -25,6 +31,7 @@ describe('Notifications', function()
             notification.on('show', (event) =>
             {
                 expect(event).toBeTruthy();
+                expect(event.sender.title).toBe('Time to Leave');
                 notification.close();
                 done();
             });
@@ -74,20 +81,20 @@ describe('Notifications', function()
 
     });
 
-    describe('notifyTimeToLeave', () =>
+    describe('createLeaveNotification', () =>
     {
         test('Should fail when notifications are disabled', () =>
         {
             const preferences = getUserPreferences();
             preferences['notification'] = false;
             savePreferences(preferences);
-            const notify = notifyTimeToLeave(true);
+            const notify = createLeaveNotification(true);
             expect(notify).toBe(false);
         });
 
         test('Should fail when leaveByElement is not found', () =>
         {
-            const notify = notifyTimeToLeave(undefined);
+            const notify = createLeaveNotification(undefined);
             expect(notify).toBe(false);
         });
 
@@ -96,54 +103,50 @@ describe('Notifications', function()
             const now = new Date();
             const dateToday = getDateStr(now);
             updateDismiss(dateToday);
-            const notify = notifyTimeToLeave(true);
+            const notify = createLeaveNotification(true);
             expect(notify).toBe(false);
         });
 
         test('Should fail when time is not valid', () =>
         {
-            const notify = notifyTimeToLeave('33:90');
+            const notify = createLeaveNotification('33:90');
             expect(notify).toBe(false);
         });
 
-        test('Should fail when time is later', () =>
+        test('Should fail when time is in the future', () =>
         {
             jest.restoreAllMocks();
             const now = new Date();
-            now.setMinutes( now.getMinutes() + 1);
-            const notify = notifyTimeToLeave(buildTimeString(now));
+            now.setMinutes(now.getMinutes() + 1);
+            const notify = createLeaveNotification(buildTimeString(now));
             expect(notify).toBe(false);
         });
 
-        test('Should fail when time is before', () =>
+        test('Should fail when time is in the past', () =>
         {
-            const preferences = getUserPreferences();
-            preferences['notifications-interval'] = 30;
-            savePreferences(preferences);
             const now = new Date();
-            now.setHours(now.getHours() - 1, now.getMinutes() - 5);
-            const notify = notifyTimeToLeave(buildTimeString(now));
+            now.setMinutes(now.getMinutes() - 9);
+            const notify = createLeaveNotification(buildTimeString(now));
             expect(notify).toBe(false);
         });
 
         test('Should fail when repetition is disabled', () =>
         {
             const preferences = getUserPreferences();
-            preferences['notifications-interval'] = 30;
             preferences['repetition'] = false;
             savePreferences(preferences);
             const now = new Date();
             now.setHours(now.getHours() - 1);
-            const notify = notifyTimeToLeave(buildTimeString(now));
+            const notify = createLeaveNotification(buildTimeString(now));
             expect(notify).toBe(false);
         });
 
         test('Should pass when time is correct and dismiss action is pressed', () =>
         {
             const now = new Date();
-            now.setHours(now.getHours());
-            const notify = notifyTimeToLeave(buildTimeString(now));
+            const notify = createLeaveNotification(buildTimeString(now));
             expect(notify).toBeTruthy();
+            expect(getDismiss()).toBe(null);
             expect(notify.listenerCount('action')).toBe(1);
             expect(notify.listenerCount('close')).toBe(1);
             expect(notify.listenerCount('click')).toBe(1);
@@ -154,9 +157,9 @@ describe('Notifications', function()
         test('Should pass when time is correct and other action is pressed', () =>
         {
             const now = new Date();
-            now.setHours(now.getHours());
-            const notify = notifyTimeToLeave(buildTimeString(now));
+            const notify = createLeaveNotification(buildTimeString(now));
             expect(notify).toBeTruthy();
+            expect(getDismiss()).toBe(null);
             expect(notify.listenerCount('action')).toBe(1);
             expect(notify.listenerCount('close')).toBe(1);
             expect(notify.listenerCount('click')).toBe(1);
@@ -167,9 +170,9 @@ describe('Notifications', function()
         test('Should pass when time is correct and close is pressed', () =>
         {
             const now = new Date();
-            now.setHours(now.getHours());
-            const notify = notifyTimeToLeave(buildTimeString(now));
+            const notify = createLeaveNotification(buildTimeString(now));
             expect(notify).toBeTruthy();
+            expect(getDismiss()).toBe(null);
             expect(notify.listenerCount('action')).toBe(1);
             expect(notify.listenerCount('close')).toBe(1);
             expect(notify.listenerCount('click')).toBe(1);
@@ -185,8 +188,7 @@ describe('Notifications', function()
                 done();
             });
             const now = new Date();
-            now.setHours(now.getHours());
-            const notify = notifyTimeToLeave(buildTimeString(now));
+            const notify = createLeaveNotification(buildTimeString(now));
             expect(notify).toBeTruthy();
             expect(notify.listenerCount('action')).toBe(1);
             expect(notify.listenerCount('close')).toBe(1);

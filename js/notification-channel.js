@@ -9,7 +9,6 @@ const searchLeaveByElement = (event) =>
 // Event handler to search for #leave-by element, not accesible through main process
 ipcRenderer.on('GET_LEAVE_BY', searchLeaveByElement);
 
-
 module.exports = {
     searchLeaveByElement
 };
