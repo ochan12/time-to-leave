@@ -97,6 +97,7 @@ typings/
 
 # Release builds
 release-builds
+packages/
 *.ttldb
 .vscode/settings.json
 *.pyc
@@ -112,3 +113,6 @@ website/.cache
 website/dist
 
 missing.md
+
+# Mac
+.DS_Store

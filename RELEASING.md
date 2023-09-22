@@ -1,4 +1,6 @@
-Guide on how to release Time To Leave:
+Guide on how to release Time to Leave:
+
+First, make sure the `changelog.md` displays the correct new version (`## X.Y.Z (in development)`).
 
 1. Update `package.json` to the release version (no -dev)
 2. `git commit -am "Release vX.Y.Z"`
@@ -6,6 +8,13 @@ Guide on how to release Time To Leave:
 4. `git push origin main stable/vX.Y.Z`
 
 This will trigger the release action which creates a draft for the release notes.
+
+If something goes wrong:
+1. Delete tag locally: `git tag --delete stable/v3.0.0`
+2. Delete tag on remote: `git push --delete origin stable/v3.0.0`
+
+Try again :)
+
 After publushing the release:
 
 1. Bump `changelog.md` to developer version (version + 1)-dev. Use the following template:

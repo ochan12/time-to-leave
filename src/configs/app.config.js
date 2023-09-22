@@ -1,7 +1,8 @@
 const languages = {
     'bn':'বাংলা',
-    'ca-CA': 'Catalàn',
+    'ca': 'Catalàn',
     'de-DE': 'Deutsch',
+    'el': 'Ελληνικά',
     'en': 'English',
     'es': 'Español',
     'fr-FR': 'Français - France',
@@ -17,12 +18,14 @@ const languages = {
     'pl': 'Polski',
     'pt-BR': 'Português - Brasil',
     'pt-MI': 'Português - Minerês',
+    'pt-PT': 'Português - Portugal',
     'ru-RU': 'Русский',
     'sv-SE': 'Svenska',
     'ta': 'தமிழ்',
     'th-TH': 'ไทย',
     'tr-TR':'Türkçe',
-    'zh-TW': '繁體中文'
+    'uk-UA': 'Українська',
+    'zh-TW': '繁體中文',
 };
 
 /**

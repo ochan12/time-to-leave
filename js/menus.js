@@ -9,7 +9,7 @@ const { getSavedPreferences } = require('./saved-preferences.js');
 const { importDatabaseFromFile, exportDatabaseToFile } = require('./import-export.js');
 const { createNotification } = require('./notification');
 const { getCurrentTranslation } = require('../src/configs/i18next.config');
-let { openWaiverManagerWindow, prefWindow } = require('./windows');
+let { openWaiverManagerWindow, prefWindow, getDialogCoordinates } = require('./windows');
 
 import { appConfig, getDetails } from './app-config.js';
 import { savePreferences } from './user-preferences.js';
@@ -42,23 +42,26 @@ function getContextMenuTemplate(mainWindow)
 {
     return [
         {
-            label: getCurrentTranslation('$Menu.punch-time'), click: function()
+            label: getCurrentTranslation('$Menu.punch-time'),
+            click: function()
             {
                 const now = new Date();
 
-                mainWindow.webContents.executeJavaScript('calendar.punchDate()');
+                mainWindow.webContents.send('PUNCH_DATE');
                 // Slice keeps "HH:MM" part of "HH:MM:SS GMT+HHMM (GMT+HH:MM)" time string
                 createNotification(`${getCurrentTranslation('$Menu.punched-time')} ${now.toTimeString().slice(0,5)}`).show();
             }
         },
         {
-            label: getCurrentTranslation('$Menu.show-app'), click: function()
+            label: getCurrentTranslation('$Menu.show-app'),
+            click: function()
             {
                 mainWindow.show();
             }
         },
         {
-            label: getCurrentTranslation('$Menu.quit'), click: function()
+            label: getCurrentTranslation('$Menu.quit'),
+            click: function()
             {
                 app.quit();
             }
@@ -74,7 +77,7 @@ function getDockMenuTemplate(mainWindow)
             {
                 const now = new Date();
 
-                mainWindow.webContents.executeJavaScript('calendar.punchDate()');
+                mainWindow.webContents.send('PUNCH_DATE');
                 // Slice keeps "HH:MM" part of "HH:MM:SS GMT+HHMM (GMT+HH:MM)" time string
                 createNotification(`${getCurrentTranslation('$Menu.punched-time')} ${now.toTimeString().slice(0,5)}`).show();
             }
@@ -118,8 +121,12 @@ function getEditMenuTemplate(mainWindow)
                 }
 
                 const htmlPath = path.join('file://', __dirname, '../src/preferences.html');
+                const dialogCoordinates = getDialogCoordinates(500, 620, mainWindow);
                 prefWindow = new BrowserWindow({ width: 500,
                     height: 620,
+                    minWidth: 480,
+                    x: dialogCoordinates.x,
+                    y: dialogCoordinates.y,
                     parent: mainWindow,
                     resizable: true,
                     icon: appConfig.iconpath,
@@ -209,7 +216,7 @@ function getEditMenuTemplate(mainWindow)
                     {
                         const importResult = importDatabaseFromFile(response);
                         // Reload only the calendar itself to avoid a flash
-                        mainWindow.webContents.executeJavaScript('calendar.reload()');
+                        mainWindow.webContents.send('RELOAD_CALENDAR');
                         if (importResult['result'])
                         {
                             dialog.showMessageBox(BrowserWindow.getFocusedWindow(),
@@ -270,7 +277,7 @@ function getEditMenuTemplate(mainWindow)
                     waivedWorkdays.clear();
                     flexibleStore.clear();
                     // Reload only the calendar itself to avoid a flash
-                    mainWindow.webContents.executeJavaScript('calendar.reload()');
+                    mainWindow.webContents.send('RELOAD_CALENDAR');
                     dialog.showMessageBox(BrowserWindow.getFocusedWindow(),
                         {
                             title: 'Time to Leave',

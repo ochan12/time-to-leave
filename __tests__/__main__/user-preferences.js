@@ -478,8 +478,9 @@ describe('Preferences Main', () =>
         test('getLanguageName() should return correct language', () =>
         {
             expect(getLanguageName('bn')).toBe('বাংলা');
-            expect(getLanguageName('ca-CA')).toBe('Catalàn');
+            expect(getLanguageName('ca')).toBe('Catalàn');
             expect(getLanguageName('de-DE')).toBe('Deutsch');
+            expect(getLanguageName('el')).toBe('Ελληνικά');
             expect(getLanguageName('en')).toBe('English');
             expect(getLanguageName('es')).toBe('Español');
             expect(getLanguageName('fr-FR')).toBe('Français - France');
@@ -495,11 +496,13 @@ describe('Preferences Main', () =>
             expect(getLanguageName('pl')).toBe('Polski');
             expect(getLanguageName('pt-BR')).toBe('Português - Brasil');
             expect(getLanguageName('pt-MI')).toBe('Português - Minerês');
+            expect(getLanguageName('pt-PT')).toBe('Português - Portugal');
             expect(getLanguageName('ru-RU')).toBe('Русский');
             expect(getLanguageName('sv-SE')).toBe('Svenska');
             expect(getLanguageName('ta')).toBe('தமிழ்');
             expect(getLanguageName('th-TH')).toBe('ไทย');
             expect(getLanguageName('tr-TR')).toBe('Türkçe');
+            expect(getLanguageName('uk-UA')).toBe('Українська');
             expect(getLanguageName('zh-TW')).toBe('繁體中文');
         });
     });

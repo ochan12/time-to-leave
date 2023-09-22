@@ -1,8 +1,7 @@
-const notificationChannel = require('../../js/notification-channel');
+const notificationChannel = require('../../js/notification-channel.js');
 
 describe('Notifications channel',  () =>
 {
-
     it('Should get content of #leave-by element', done =>
     {
         window.$ = require('jquery');

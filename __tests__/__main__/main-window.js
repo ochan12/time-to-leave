@@ -1,9 +1,16 @@
-const {getMainWindow, createWindow, resetMainWindow, getLeaveByInterval, getWindowTray} = require('../../js/main-window.js');
 const notification = require('../../js/notification.js');
 const userPreferences = require('../../js/user-preferences.js');
 const { savePreferences, defaultPreferences, resetPreferences } = userPreferences;
-
 const { BrowserWindow, ipcMain } = require('electron');
+
+jest.mock('../../js/update-manager', () => ({
+    checkForUpdates: jest.fn(),
+    shouldCheckForUpdates: jest.fn()
+}));
+
+const mainWindowModule = require('../../js/main-window.js');
+const { getMainWindow, createWindow, resetMainWindow, getLeaveByInterval, getWindowTray, triggerStartupDialogs } = mainWindowModule;
+const updateManager = require('../../js/update-manager.js');
 
 describe('main-window.js', () =>
 {
@@ -11,12 +18,12 @@ describe('main-window.js', () =>
     beforeEach(() =>
     {
         // Avoid showing the window
-        showSpy = jest.spyOn(BrowserWindow.prototype, 'show').mockImplementation(() => {});
+        showSpy = jest.spyOn(BrowserWindow.prototype, 'show').mockImplementationOnce(() => {});
     });
 
     describe('getMainWindow', () =>
     {
-        test('Should be null  if it has not been started', () =>
+        test('Should be null if it has not been started', () =>
         {
             expect(getWindowTray()).toBe(null);
             expect(getMainWindow()).toBe(null);
@@ -130,7 +137,7 @@ describe('main-window.js', () =>
             const mainWindow = getMainWindow();
             mainWindow.on('ready-to-show', () =>
             {
-                const windowSpy = jest.spyOn(notification, 'notifyTimeToLeave').mockImplementation(() =>
+                const windowSpy = jest.spyOn(notification, 'createLeaveNotification').mockImplementation(() =>
                 {
                     return false;
                 });
@@ -149,7 +156,7 @@ describe('main-window.js', () =>
             const mainWindow = getMainWindow();
             mainWindow.on('ready-to-show', () =>
             {
-                const windowSpy = jest.spyOn(notification, 'notifyTimeToLeave').mockImplementation(() =>
+                const windowSpy = jest.spyOn(notification, 'createLeaveNotification').mockImplementation(() =>
                 {
                     return {
                         show: () =>
@@ -243,14 +250,10 @@ describe('main-window.js', () =>
                 done();
             });
         });
+
         test('Should minimize if minimize-to-tray is false', (done) =>
         {
             const userPreferencesSpy = jest.spyOn(userPreferences, 'getUserPreferences');
-            jest.spyOn(BrowserWindow.prototype, 'minimize').mockImplementation(() =>
-            {
-                expect(userPreferencesSpy).toHaveBeenCalledTimes(1);
-                done();
-            });
             savePreferences({
                 ...defaultPreferences,
                 ['minimize-to-tray']: false
@@ -264,9 +267,12 @@ describe('main-window.js', () =>
             mainWindow.on('ready-to-show', () =>
             {
                 mainWindow.emit('minimize', {});
+                expect(userPreferencesSpy).toHaveBeenCalledTimes(1);
+                done();
             });
         });
     });
+
     describe('emit close', () =>
     {
         test('Should get hidden if close-to-tray is true', (done) =>
@@ -314,6 +320,79 @@ describe('main-window.js', () =>
                 });
                 expect(mainWindow.isDestroyed()).toBe(true);
                 done();
+            });
+        });
+    });
+
+
+    describe('triggerStartupDialogs', () =>
+    {
+        test('Should check for updates and try to migrate', () =>
+        {
+            const shouldCheckUpdate = jest.spyOn(updateManager, 'shouldCheckForUpdates').mockImplementationOnce(() => true);
+            const checkUpdate = jest.spyOn(updateManager, 'checkForUpdates').mockImplementationOnce(() => {});
+
+            triggerStartupDialogs();
+            expect(shouldCheckUpdate).toHaveBeenCalledTimes(1);
+            expect(checkUpdate).toHaveBeenCalledTimes(1);
+        });
+
+        test('Should check for updates and try to migrate', () =>
+        {
+            const shouldCheckUpdate = jest.spyOn(updateManager, 'shouldCheckForUpdates').mockImplementationOnce(() => false);
+            const checkUpdate = jest.spyOn(updateManager, 'checkForUpdates').mockImplementationOnce(() => {});
+
+            triggerStartupDialogs();
+            expect(shouldCheckUpdate).toHaveBeenCalledTimes(2);
+            expect(checkUpdate).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('GET_LEAVE_BY interval', () =>
+    {
+        test('Should create interval', (done) =>
+        {
+            jest.useFakeTimers();
+            jest.spyOn(global, 'setInterval');
+
+            createWindow();
+            /**
+             * @type {BrowserWindow}
+             */
+            const mainWindow = getMainWindow();
+            mainWindow.on('ready-to-show', () =>
+            {
+                mainWindow.emit('close', {
+                    preventDefault: () => {}
+                });
+                expect(setInterval).toHaveBeenCalledTimes(1);
+                expect(setInterval).toHaveBeenLastCalledWith(expect.any(Function), 60 * 1000);
+                done();
+            });
+        });
+
+        test('Should run interval', (done) =>
+        {
+            jest.useFakeTimers();
+            jest.spyOn(global, 'setInterval');
+            jest.clearAllTimers();
+            createWindow();
+            /**
+             * @type {BrowserWindow}
+             */
+            const mainWindow = getMainWindow();
+            jest.spyOn(mainWindow.webContents, 'send').mockImplementationOnce(() =>
+            {
+                done();
+            });
+            mainWindow.on('ready-to-show', () =>
+            {
+                mainWindow.emit('close', {
+                    preventDefault: () => {}
+                });
+                expect(setInterval).toHaveBeenCalledTimes(1);
+                expect(setInterval).toHaveBeenLastCalledWith(expect.any(Function), 60 * 1000);
+                jest.runOnlyPendingTimers();
             });
         });
     });
