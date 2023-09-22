@@ -1,6 +1,16 @@
-## 2.0.2 (in development)
+## 3.0.1 (in development)
 
 <!--- Begin changes - Do not remove -->
+
+<!--- End changes - Do not remove -->
+
+Who built 3.0.1:
+
+<!--- Begin users - Do not remove -->
+
+<!--- End users - Do not remove -->
+
+## 3.0.0
 
 -   Enhancement [#645]: No confirmation popup when removing entry pair
 -   Enhancement [#649]: Improve time taken to import a database into TTL
@@ -17,6 +27,7 @@
 -   Enhancement [#871]: Change waiver icon to be more consistent with app UI
 -   Enhancement [#881]: Time to Leave has a new look! TTL icon was changed
 -   Enhancement [#883]: Click on the notification should open TTL
+-   Enhancement [#961]: Add hover effect to buttons on website
 -   Fix [#650]: Month balance is incorrect
 -   Fix [#660]: Hours field on waiver manager is not validated
 -   Fix [#702]: Day view and balance not counting the waived value when looking at a waived day
@@ -35,8 +46,13 @@
 -   Fix [#884]: Slightly moving the date picker icon margin in Day view
 -   Fix [#890]: Leave by field to be updated with removal of entries
 -   Fix [#892]: start menu entry title on Windows is hyphenated
+-   Fix [#912]: Hard code time to leave string in window title
 -   Fix [#925]: Punch from tray and reload after changing database do not work
+-   Fix [#929]: Improved code coverage and fixed some bugs along the way.
+-   Fix [#941]: Pop-up confirmation to remove entry shows wrong month
+-   Fix [#972]: Preference window doesn't have minimum width
 -   Translation: Time to Leave is now available in Bengali (bn)!
+-   Translation: Time to Leave is now available in Greek (el)!
 -   Translation: Time to Leave is now available in Gujarati (gu)!
 -   Translation: Time to Leave is now available in Hebrew (he)!
 -   Translation: Time to Leave is now available in Persian (fa-IR)!
@@ -44,12 +60,9 @@
 -   Translation: Time to Leave is now available in Russian (ru-RU)!
 -   Translation: Time to Leave is now available in Swedish (sv-SE)!
 -   Translation: Time to Leave is now available in Turkish (tr-TR)!
+-   Translation: Time to Leave is now available in Ukrainian (uk-UA)!
 
-<!--- End changes - Do not remove -->
-
-Who built 2.0.2:
-
-<!--- Begin users - Do not remove -->
+Who built 3.0.0:
 
 -   AayushSaini101
 -   BamButz
@@ -57,6 +70,7 @@ Who built 2.0.2:
 -   DanMargera
 -   Dudu-CNU
 -   JulienZD
+-   Kostioan
 -   L8Y
 -   LauraToddCodes
 -   LouisHLAV
@@ -89,6 +103,7 @@ Who built 2.0.2:
 -   haeramkeem
 -   hy38
 -   id-konstantin-stepanov
+-   jamesnottidge
 -   jdkramhoft
 -   kimvcp
 -   kishorliv
@@ -105,12 +120,12 @@ Who built 2.0.2:
 -   sgronlund
 -   show981111
 -   stark255
+-   sung01299
 -   thamara
 -   thefyrewire
+-   timagixe
 -   tupaschoal
 -   wonkyung
-
-<!--- End users - Do not remove -->
 
 ## 2.0.1
 

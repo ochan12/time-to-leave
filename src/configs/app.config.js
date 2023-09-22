@@ -1,7 +1,8 @@
 const languages = {
     'bn':'বাংলা',
-    'ca-CA': 'Catalàn',
+    'ca': 'Catalàn',
     'de-DE': 'Deutsch',
+    'el': 'Ελληνικά',
     'en': 'English',
     'es': 'Español',
     'fr-FR': 'Français - France',
@@ -23,7 +24,8 @@ const languages = {
     'ta': 'தமிழ்',
     'th-TH': 'ไทย',
     'tr-TR':'Türkçe',
-    'zh-TW': '繁體中文'
+    'uk-UA': 'Українська',
+    'zh-TW': '繁體中文',
 };
 
 /**

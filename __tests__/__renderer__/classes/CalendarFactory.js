@@ -1,6 +1,6 @@
-import { CalendarFactory } from '../../../js/classes/CalendarFactory';
-import { FlexibleDayCalendar } from '../../../js/classes/FlexibleDayCalendar';
-import { FlexibleMonthCalendar } from '../../../js/classes/FlexibleMonthCalendar';
+import { CalendarFactory } from '../../../js/classes/CalendarFactory.js';
+import { FlexibleDayCalendar } from '../../../js/classes/FlexibleDayCalendar.js';
+import { FlexibleMonthCalendar } from '../../../js/classes/FlexibleMonthCalendar.js';
 
 jest.mock('../../../js/classes/BaseCalendar.js', () =>
 {
@@ -25,7 +25,7 @@ jest.mock('electron', () =>
     };
 });
 
-const {ipcRenderer} = require('electron');
+const { ipcRenderer } = require('electron');
 
 describe('CalendarFactory', () =>
 {
@@ -38,7 +38,6 @@ describe('CalendarFactory', () =>
 
     describe('FlexibleDayCalendar', () =>
     {
-
         test('Should fail wrong view', () =>
         {
             let calls = 0;
@@ -110,7 +109,6 @@ describe('CalendarFactory', () =>
             expect(calendar).toBeInstanceOf(FlexibleDayCalendar);
             expect(calls).toBe(1);
         });
-
     });
 
     describe('FlexibleMonthCalendar', () =>
