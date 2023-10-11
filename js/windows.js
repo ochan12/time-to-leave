@@ -90,5 +90,7 @@ module.exports = {
     tray,
     contextMenu,
     openWaiverManagerWindow,
-    getDialogCoordinates
+    getDialogCoordinates,
+    getWaiverWindow,
+    resetWindowsElements
 };

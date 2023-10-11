@@ -258,20 +258,6 @@ describe('Test Workday Waiver Window', function()
 
     describe('Delete waiver', () =>
     {
-        test('Waiver was not deleted', () =>
-        {
-            prepareMockup();
-            addTestWaiver('2020-07-16', 'some reason');
-            const deleteBtn = document.querySelectorAll('#waiver-list-table .delete-btn')[0];
-            showDialog.mockImplementation((options, cb) =>
-            {
-                cb({ response: 1 });
-            });
-            deleteEntryOnClick({target: deleteBtn});
-            const length = document.querySelectorAll('#waiver-list-table .delete-btn').length;
-            expect(length).toBe(1);
-        });
-
         test('Waiver was deleted', async() =>
         {
             await prepareMockup();

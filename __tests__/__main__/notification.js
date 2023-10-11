@@ -15,7 +15,7 @@ describe('Notifications', function()
 {
     describe('notify', () =>
     {
-        beforeAll(() =>
+        beforeEach(() =>
         {
             // displays a notification in test fails if mocks are not restored
             jest.restoreAllMocks();
@@ -23,7 +23,6 @@ describe('Notifications', function()
 
         test('displays a notification in test', (done) =>
         {
-            jest.restoreAllMocks();
             process.env.NODE_ENV = 'test';
             const notification = createNotification('test');
             expect(notification.body).toBe('test');
