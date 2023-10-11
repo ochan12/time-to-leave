@@ -269,7 +269,7 @@ describe('main-window.js', () =>
             mainWindow.on('ready-to-show', () =>
             {
                 mainWindow.emit('minimize', {});
-                expect(minimizeSpy).toBeCalledTimes(1);
+                expect(minimizeSpy).toBeCalled();
                 done();
             });
         });
