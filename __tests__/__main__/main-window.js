@@ -263,7 +263,7 @@ describe('main-window.js', () =>
             createWindow();
             /**
              * @type {BrowserWindow}
-            */
+             */
             const mainWindow = getMainWindow();
             const minimizeSpy = jest.spyOn(mainWindow, 'minimize');
             mainWindow.on('ready-to-show', () =>
